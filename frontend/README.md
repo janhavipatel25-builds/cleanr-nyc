@@ -40,4 +40,6 @@ npm run dev          # http://localhost:5173/cleanr-nyc/  (needs public/tonight.
 npm test             # Vitest, on London time on purpose (proves New York time handling)
 npm run build        # production build → dist/
 node scripts/screenshot.mjs http://localhost:5173/cleanr-nyc/ shot.png 390 844   # phone-size screenshot
+node scripts/ui-check.mjs   # clicks through the running app: keyboard, downloads, DST night, 320–440px
+npm run dev -- --host       # open the "Network" link on your phone (same Wi-Fi)
 ```

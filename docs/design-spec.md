@@ -129,9 +129,9 @@ The prototype also uses a few supporting values (`--led-dim #2B2420`, `--board #
 - Mix dots change colour in a quick staggered wave.
 
 ## Known issues and gaps in the prototype (fix while porting)
-- **Moon behind the tag:** the moon can sit behind the scrubber tag around 1–3 AM.
-- **Reduced motion:** the prototype draws a still frame but still starts the animation loop,
-  so turbines and smoke keep moving. The port should fully stop the loop.
+- **Moon behind the tag:** the moon could sit behind the scrubber tag around 1–3 AM. *Fixed in V1: lower arc, tested.*
+- **Reduced motion:** the prototype drew a still frame but still ran the animation loop.
+  *Fixed in V1: no loop at all; checked automatically.*
 - **Forecast / Actual labels:** the brief requires every hour to be labelled Forecast / Actual / Live.
   The prototype only shows "Live" and "Best" tags. This needs a design pass.
 - **Copy:** the grid lens heading says "Now vs the best hour" and a code comment says "cleanest".
@@ -141,4 +141,8 @@ The prototype also uses a few supporting values (`--led-dim #2B2420`, `--board #
 - **Before 6 PM:** every hour is Forecast and there's no "Now" row. This state isn't in the prototype.
 - **Hour count:** the prototype hard-codes 15 hours. The daylight-saving night has 16, so the port reads the count from the data.
 - **"Data delayed":** a small note when the data is over 3 hours old or the night has ended. Not in the prototype.
-- **Calendar and Stories buttons** only show toasts in the prototype. They need real implementations.
+- **Calendar and Stories buttons** only showed toasts in the prototype. *Real in V1: .ics download; 1080×1920 PNG
+  (share sheet on phones, download on computers).*
+- **Info tooltip on desktop:** hovering opened it, then the click closed it again (also in the prototype). *Fixed in V1.*
+- **Haze:** the prototype used a fixed 200 g/kWh threshold. *V1: haze follows tonight's relative intensity, like the labels.*
+- **Ticket footer:** the prototype said "cleanr.nyc", a domain we don't own. *V1 says "CLEANR / NYC".*

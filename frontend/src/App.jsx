@@ -1,10 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+// One app, two lenses on the same scene and the same hours.
+// State: { lens, selectedHour }. Everything else is derived from tonight.json + the clock.
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppBar from './components/AppBar.jsx'
+import BoardCard from './components/BoardCard.jsx'
+import Footer from './components/Footer.jsx'
 import LensSwitch from './components/LensSwitch.jsx'
+import ShareSheet from './components/ShareSheet.jsx'
 import StatusNote from './components/StatusNote.jsx'
+import Toast from './components/Toast.jsx'
+import GridView from './components/grid/GridView.jsx'
+import Scene from './components/scene/Scene.jsx'
+import TonightView from './components/tonight/TonightView.jsx'
+import { downloadIcs } from './lib/ics.js'
 import { loadTonight } from './lib/loadTonight.js'
-import { bestHour, calmStretch, initialSelection, isStale, statusOf } from './lib/model.js'
-import { hourShort } from './lib/time.js'
+import { bestHour, calmStretch, initialSelection, isStale, liveIndex } from './lib/model.js'
+import { useReducedMotion } from './lib/useReducedMotion.js'
 
 const MINUTE = 60_000
 const REFRESH = 15 * MINUTE
@@ -19,55 +29,68 @@ function useNow() {
   return now
 }
 
-export default function App() {
-  const now = useNow()
-  const [result, setResult] = useState(null) // null = loading
-  const [lens, setLens] = useState('tonight')
-  const [selected, setSelected] = useState(null)
-
+function useTonight() {
+  const [result, setResult] = useState(null) // null = still loading
   useEffect(() => {
     let alive = true
-    const load = () => loadTonight().then((r) => alive && setResult(r))
+    const load = () => loadTonight().then((r) => alive && setResult((prev) => (r.ok || !prev?.ok ? r : prev)))
     load()
     const id = setInterval(load, REFRESH)
     return () => { alive = false; clearInterval(id) }
   }, [])
+  return result
+}
+
+export default function App() {
+  const now = useNow()
+  const result = useTonight()
+  const reduced = useReducedMotion()
+  const [lens, setLens] = useState('tonight')
+  const [picked, setPicked] = useState(null)
+  const [sharing, setSharing] = useState(false)
+  const [message, setMessage] = useState('')
+  const clearMessage = useCallback(() => setMessage(''), [])
 
   const doc = result?.ok ? result.data : null
-  const hours = doc?.hours ?? []
+  const hours = useMemo(() => doc?.hours ?? [], [doc])
   const best = useMemo(() => (doc ? bestHour(hours, now) : null), [doc, hours, now])
   const stretch = useMemo(() => calmStretch(hours, best, now), [hours, best, now])
-  const sel = selected ?? (doc ? initialSelection(hours, now) : 0)
+  const selected = doc ? Math.min(picked ?? initialSelection(hours, now), hours.length - 1) : 0
+
+  // "Now" for comparisons: the Live hour if it has real data, else the latest actual hour.
+  const live = doc ? liveIndex(hours, now) : -1
+  const base = live >= 0 && hours[live].source === 'actual' ? hours[live] : doc?.now
 
   const state = result === null ? 'loading' : !result.ok ? 'error' : isStale(doc, now) ? 'stale' : 'ok'
 
+  const seeGrid = () => {
+    setLens('grid')
+    setPicked(best)
+    document.getElementById('scene')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+  }
+  const addToCalendar = () => {
+    downloadIcs(hours[best])
+    setMessage('Calendar invite downloaded.')
+  }
+
   return (
-    <main className="mx-auto grid max-w-[440px]">
+    <main className="mx-auto grid max-w-[440px] grid-cols-[minmax(0,1fr)]">
       <AppBar now={now} />
       <LensSwitch lens={lens} onChange={setLens} />
       <StatusNote state={state} doc={doc} />
       {doc && (
-        // Step 3 placeholder: plain list of tonight's real hours. Replaced by the ported design in step 4.
-        <ol className="rounded-[var(--r)] border border-border bg-card py-1">
-          {hours.map((h, i) => {
-            const status = statusOf(h, now)
-            return (
-              <li key={h.time}>
-                <button type="button" onClick={() => setSelected(i)} aria-pressed={i === sel}
-                  className="grid w-full cursor-pointer grid-cols-[52px_1fr_72px_72px] items-center gap-2.5 border-b border-border px-3.5 py-2 text-left text-sm last:border-0 aria-pressed:shadow-[inset_3px_0_0_var(--led)]">
-                  <span className="font-dot text-[15px] font-extrabold text-led">{hourShort(h.hourOfDay)}</span>
-                  <span>{h.intensity} g/kWh</span>
-                  <span style={{ color: `var(--${h.label})` }}>{h.label === 'rush' ? 'Rush hr' : h.label === 'busy' ? 'Busy' : 'Calm'}</span>
-                  <span className="text-right text-xs text-faint">
-                    {i === best ? 'Best · ' : stretch && i >= stretch.start && i < stretch.end ? 'Stretch · ' : ''}
-                    {status === 'live' ? 'Live' : status === 'actual' ? 'Actual' : 'Forecast'}
-                  </span>
-                </button>
-              </li>
-            )
-          })}
-        </ol>
+        <>
+          <Scene hours={hours} selected={selected} onSelect={setPicked} stretch={stretch} now={now} lens={lens} reduced={reduced} />
+          <BoardCard lens={lens} hours={hours} best={best} stretch={stretch} selected={selected} base={base} now={now}
+            onCalendar={addToCalendar} onShare={() => setSharing(true)} />
+          {lens === 'tonight'
+            ? <TonightView hours={hours} best={best} stretch={stretch} selected={selected} onSelect={setPicked} now={now} base={base} onSeeGrid={seeGrid} />
+            : <GridView hours={hours} selected={selected} best={best} base={base} now={now} />}
+        </>
       )}
+      <Footer doc={doc} />
+      {sharing && best !== null && <ShareSheet hours={hours} best={best} onClose={() => setSharing(false)} toast={setMessage} />}
+      <Toast message={message} onDone={clearMessage} />
     </main>
   )
 }

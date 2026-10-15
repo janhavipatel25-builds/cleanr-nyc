@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './tokens.css';
+@import './app.css';
 
 /* Tailwind utilities read the same tokens: bg-card, text-muted, border-border, font-dot, … */
 @theme inline {

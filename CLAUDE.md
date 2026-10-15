@@ -98,4 +98,6 @@ Frontend (run from `frontend/`):
 - Dev server: `npm run dev` → http://localhost:5173/cleanr-nyc/ (needs `public/tonight.json`: run the backend command above)
 - Tests: `npm test` (runs on London time on purpose, to prove NYC-time handling)
 - Build: `npm run build` → `dist/`
-- Phone screenshot: `node scripts/screenshot.mjs <url> <out.png> [width] [height]`
+- Phone screenshot: `node scripts/screenshot.mjs <url> <out.png> [width] [height] [--time=ISO] [--data=json] [--click=sel]`
+- Click-through check (dev server running): `node scripts/ui-check.mjs` → must say `35/35 checks passed`
+- Try it on a phone (same Wi-Fi): `npm run dev -- --host`, then open the "Network" link it prints
