@@ -97,9 +97,23 @@ For each future hour:
 - Two versions of the gas line are tested:
   - `load`: gas MW from forecast load.
   - `net_load`: gas MW from forecast load **minus** the predicted clean sources (gas fills what's left).
-- **Backtest (plan step 1.5):** run both on each of the last 7 nights and compare with what happened.
-  Report the average error (g/kWh) and whether the picked best hour was among the actual 3 calmest.
-  Compare with option (b), the typical-pattern baseline. The best version wins. Results go here and in the README.
+- **Backtest (plan step 1.5):** replay each recent night as if it were 5 PM that day, forecast the
+  whole night, and compare with what happened. Script: `backend/scripts/backtest.py`.
+
+### Backtest results (run 2026-10-15, 21 nights: 2026-09-24 → 2026-10-14)
+| Version | Avg error (g/kWh) | Picked hour was in the actual 3 calmest | Labels matching |
+|---|---|---|---|
+| **`load` (option a) ✅ shipped** | **9.5** | 15/21 | 59% |
+| `net_load` | 13.4 | 13/21 | 55% |
+| `typical` (option b, baseline) | 18.8 | 16/21 | 63% |
+| `hybrid` (typical hour adjusted by forecast demand) | 10.2 | 14/21 | 60% |
+
+- **`load` wins:** half the baseline's error, and about as good at picking the hour.
+- For scale: the average night's spread (calmest to busiest hour) was **29.5 g/kWh**.
+  So a 9.5 g/kWh error is real but smaller than the differences we're ranking.
+- Labels from the forecast match the real labels ~60% of the time (guessing would be ~33%).
+  That's why future hours are always tagged **Forecast**.
+- 7-night run gave a different order (`typical` slightly ahead). 21 nights is the fairer test.
 
 ## Labels: relative to tonight (decided 2026-10-15)
 No fixed numbers. Labels come from **tonight's own hours** (actual + forecast, 6 PM → 8 AM):
@@ -142,7 +156,7 @@ Both lenses render from this one model. That shared model is the "systems thinki
     // … one per hour, 6 PM → 8 AM (16 on the daylight-saving night)
   ],
   "meta": { "thresholds": { "p33": 198, "p67": 224 }, "emissionFactors": {}, "sources": [],
-            "forecastMethod": "net_load-v1" }
+            "forecastMethod": "load-v1" }
 }
 ```
 

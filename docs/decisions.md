@@ -35,3 +35,7 @@ Newest at the bottom. Format: **date · decision · why**.
 | 2026-10-15 | A JSON Schema file is the contract between pipeline and app. A file that breaks it is never published. | Catches mistakes before users see them; the app can trust its input. |
 | 2026-10-15 | City settings (time zone, night, off-peak, feeds) live in one config file. | Keeps the code city-agnostic at almost no cost. |
 | 2026-10-15 | Backtest two forecast versions (`load`, `net_load`) against the baseline; ship the best. | Let the data choose, and get an honest accuracy number for the README. |
+| 2026-10-15 | Host on GitHub Pages. | Free for public repos; the hourly job can deploy without adding commits. |
+| 2026-10-15 | "Other renewables" row uses the `--src-solar` colour token. | Keeps the approved palette; no new colour. |
+| 2026-10-15 | Janhavi runs the commit commands at the end of each step. | Learning by doing, and the definition of done asks for it. |
+| 2026-10-15 | Build "Native": Claude builds each step in this session; one fresh review at the end. | Fastest and cheapest for a one-day deadline. |

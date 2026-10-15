@@ -43,3 +43,6 @@ Thumbs.db
 
 # --- Generated data ---
 frontend/public/tonight.json
+
+# --- Backend download cache ---
+backend/.cache/

@@ -49,7 +49,8 @@ Use this exact shape, short and in plain words:
 - Act as a senior software architect: clear boundaries, small focused files, one contract between parts.
 
 ## Git workflow
-- **V1 sprint (deadline 2026-10-15 evening):** commit straight to `develop` when Janhavi asks.
+- **V1 sprint (deadline 2026-10-15 evening):** work straight on `develop`. At the end of each plan step,
+  Claude gives Janhavi the commit command(s) and Janhavi runs them. Claude doesn't commit.
   Feature branches + PRs below are the normal workflow after the sprint.
 - `main` = live / released. `develop` = integration.
 - All work happens on a short-lived branch off `develop`:
