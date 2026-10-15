@@ -1,33 +1,35 @@
 # Progress
 
 ## Current phase
-**Plan locked. Next: sprint step 1 (Data).**
+**Plan revised (v2). Waiting for Janhavi's approval before building.**
 **Deadline: V1 live by the evening of 2026-10-15.** Full plan: [docs/plan.md](docs/plan.md).
 
-## Sprint steps
-- [ ] 1. Data: fetch NYISO, intensity, forecast fit, backtest
-- [ ] 2. Pipeline: `tonight.json` + tests
-- [ ] 3. Frontend scaffold
+## Plan steps
+- [ ] 1. Data foundations (backend)
+- [ ] 2. The tonight model + contract
+- [ ] 3. Frontend foundations
 - [ ] 4. Port the prototype
-- [ ] 5. Ship: workflows, GitHub Pages, README with screenshots
+- [ ] 5. Ship
 
 ## Done
 - 2026-10-14: Created the GitHub repo with `main` and `develop` branches.
 - 2026-10-14: Added `cleanr-prototype.html` (approved prototype, mock data) to the repo root.
-- 2026-10-14: Created the starter template: `CLAUDE.md`, `progress.md`, `README.md`, `.gitignore`,
-  `docs/` (brief, design spec, data notes, decisions), `frontend/README.md`, `backend/README.md`.
+- 2026-10-14: Created the starter template (CLAUDE.md, progress, README, .gitignore, docs, frontend/backend READMEs).
 - 2026-10-14: Checked the NYISO CSV feeds. There's no separate Solar category.
-- 2026-10-15: Answered the open questions (see `docs/decisions.md`). Wrote `docs/plan.md`.
-- 2026-10-15: Confirmed the repo is public, and that NYISO daily files go back ~10 days (older ones in monthly zips).
+- 2026-10-15: Locked the open decisions (see `docs/decisions.md`). Wrote plan v1.
+- 2026-10-15: Installed the Superpowers plugin (v6.4.1). Rewrote the plan as v2: 5 steps × ≤5 substeps, with an architecture review.
 
 ## Next up
-1. Janhavi confirms the two assumptions below.
-2. Start step 1: set up the Python backend and fetch real data.
+1. Janhavi approves plan v2 and answers the 3 questions below.
+2. Push to `develop`.
+3. Start step 1.1.
 
 ## Open questions
-- **Hosting:** GitHub Pages assumed. OK?
-- **"Other renewables" row:** with Solar parked, the mix still has an "Other Renewables" category (~a few %).
-  Show it as its own row, using the existing `--src-solar` colour token? (It must go somewhere for the mix to add up to 100.)
+- **Defaults:** GitHub Pages for hosting, and the yellow `--src-solar` colour for the "Other renewables" row. OK?
+- **Commits:** the brief's definition of done says Janhavi makes a meaningful number of commits.
+  Should Janhavi run the commit command at the end of each substep, or should Claude commit?
+- **Build approach (Superpowers):** "Native" (Claude builds each step, one fresh review at the end) or
+  "Subagent-driven" (a fresh helper builds and a fresh reviewer checks every task; slower, costs more)?
 
 ## Session log
 - **2026-10-14**
@@ -37,4 +39,6 @@
   - Deadline set: V1 live by the evening of 2026-10-15. Committing straight to `develop` for this sprint.
 - **2026-10-15**
   - Locked decisions: forecast (a), EPA eGRID, relative labels, Solar parked, fossil under Gas, wall is a fast follow.
-  - Wrote the full V1 build plan (`docs/plan.md`) and updated all docs to match.
+  - Installed Superpowers. Architecture review → plan v2: the app owns clock-based logic, NYC time everywhere,
+    a JSON Schema contract, one city config, and a backtest of two forecast versions.
+  - Added the step-report format (what we did · example · analogy · what's next) to `CLAUDE.md`.

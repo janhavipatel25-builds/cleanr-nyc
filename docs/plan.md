@@ -1,133 +1,203 @@
-# V1 build plan
+# Cleanr NYC V1 Implementation Plan
 
-**Goal:** V1 live on a public URL by **the evening of 2026-10-15**, using real NYISO data.
-Built as one sprint in 5 steps. How the numbers work is in [data-notes.md](data-notes.md).
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans (or superpowers:subagent-driven-development)
+> to implement this plan step by step. Use superpowers:test-driven-development for every code substep and
+> superpowers:verification-before-completion before ticking anything off. Substeps use `- [ ]` checkboxes.
 
-## Decisions locked (2026-10-15)
-| Topic | Decision |
+**Goal:** A live, phone-friendly web app that tells New York EV drivers tonight's calmest hour to charge,
+using real NYISO data, by **the evening of 2026-10-15**.
+
+**Architecture:** A Python pipeline runs every hour on GitHub Actions. It turns NYISO's public CSVs into one
+checked file, `tonight.json`. A static React app reads that file and adds everything that depends on the
+viewer's clock (Now, best hour, calm stretch). GitHub Pages hosts it. No server, no database.
+
+**Tech stack:** Python 3.13 · pandas · pytest · jsonschema | Node 26 · Vite · React · Tailwind v4 · Vitest |
+GitHub Actions · GitHub Pages.
+
+**Spec:** [product-brief.md](product-brief.md) · [design-spec.md](design-spec.md) ·
+[data-notes.md](data-notes.md) · [decisions.md](decisions.md) · visual source of truth: `cleanr-prototype.html`.
+
+**Shape of the plan:** 5 steps, at most 5 substeps each (owner's rule). After each step, the step report
+follows the format in `CLAUDE.md`: what was done, an example, an analogy, then what's next.
+
+## Global constraints
+- Times always shown in **New York time** (`America/New_York`), whatever the viewer's own time zone.
+- Night = 6 PM → 8 AM. Off-peak = 12–8 AM. Both live in one city config, not scattered in code.
+- Calm / Busy / Rush = thirds of **tonight's** intensities. Copy says "compared with the rest of tonight".
+- Groups: Nuclear · Hydro · Wind · Other renewables · Gas (= Natural Gas + Dual Fuel + Other Fossil Fuels).
+- Emission factors: EPA eGRID, cited in code and README.
+- Copy: "calmest hour", never "cleanest". Hours show **Actual / Live / Forecast**. No savings, no finish times.
+- Design: tokens only, Doto only for times, state colours only on state elements, never colour alone,
+  `prefers-reduced-motion` respected, max width ~440px.
+- No wall, no Solar row, no accounts, no notifications in V1.
+- The prototype file is never modified and never deployed.
+
+## Architecture in one picture
+```
+                      every hour (GitHub Actions)
+NYISO CSVs ──► fetch ──► hourly mix ──► intensity ──► forecast ──► tonight model ──► tonight.json
+                                                                       │  checked against
+                                                                       ▼  docs/tonight.schema.json
+                                                     React app (GitHub Pages)
+                                         adds clock-based parts: Now · Live · best hour · calm stretch
+```
+
+**Who decides what**
+| Pipeline (data truth) | App (clock truth) |
 |---|---|
-| Forecast | **Option (a):** predict gas from NYISO's load forecast |
-| Emission factors | **EPA eGRID**, New York gas and oil rates |
-| Calm / Busy / Rush | **Relative to tonight's own hours** (thirds), not fixed numbers |
-| Solar | **Parked.** No Solar row in V1 |
-| Dual Fuel + Other Fossil | **Counted under Gas**, with a footnote |
-| The wall | **Fast follow, not in V1.** Storage decided later |
-| Hosting | **GitHub Pages** (assumed, to confirm) |
-| Installs | Allowed (pandas, pytest, Vite, React, Tailwind, etc.) |
-| Git | Commit straight to `develop` during the sprint. Merge `develop` → `main` to release |
+| Which night, hourly mix, intensity, forecast, labels, `now` mix | Actual / Live / Forecast, best hour, calm stretch, "Data delayed" |
 
-## How it fits together
+Why the split: the hourly job can run late. If the pipeline picked the best hour, a late update could show a
+best hour that's already over. The app knows the real time, so it decides anything time-sensitive.
+
+## Files
 ```
-NYISO public CSVs
-      │  (hourly, GitHub Actions)
-      ▼
-backend pipeline (Python + pandas)
-  fetch → hourly mix → intensity → forecast → labels → best hour
-      │
-      ▼
-tonight.json  ──►  frontend build (Vite + React + Tailwind)  ──►  GitHub Pages
-                                                                 janhavipatel25-builds.github.io/cleanr-nyc
+backend/
+  requirements.txt
+  cleanr/  config.py · fetch.py · mix.py · emission_factors.py · intensity.py · forecast.py · tonight.py · __main__.py
+  scripts/backtest.py
+  samples/tonight.sample.json
+  tests/   fixtures/ · test_fetch.py · test_mix.py · test_intensity.py · test_forecast.py · test_tonight.py · test_main.py
+docs/tonight.schema.json          ← the contract between pipeline and app
+frontend/
+  src/lib/      time.js · model.js · loadTonight.js · ics.js · storyImage.js  (+ *.test.js)
+  src/styles/   tokens.css
+  src/components/  AppBar · LensSwitch · scene/ (SkylineCanvas, Scrubber) · BoardCard · tonight/ · grid/ · ShareSheet · PixelIcon
+.github/workflows/  ci.yml · deploy.yml
 ```
-- No server and no database. The whole app is static files rebuilt every hour.
-- The pipeline computes the whole model (labels, best hour, calm stretch) in **one place**.
-  The frontend only displays it and uses the viewer's clock for Now / Live.
 
-## The 5 steps
+## Key interfaces
+```python
+# backend/cleanr
+config.CITY                                   # tz, night_start=18, night_end=8, offpeak=(0, 8), feed URLs, fuel→group map
+fetch.fuel_mix(day: date) -> DataFrame        # 5-min rows; daily file, else monthly zip; raises DataMissing
+fetch.actual_load(day: date) -> DataFrame
+fetch.load_forecast(day: date) -> DataFrame
+mix.hourly(df5min) -> DataFrame               # index = hour start (tz-aware), columns = 5 groups, MW
+intensity.of(mix_row) -> float                # g CO2/kWh
+forecast.night(history, load_fc, hours, variant="load"|"net_load") -> DataFrame   # MW per group per hour
+tonight.build(now: datetime) -> dict          # the tonight.json content
+```
+```js
+// frontend/src/lib
+nyNow(): Date-like {hour, date}               // current time in New York
+statusOf(hour, now): 'actual'|'live'|'forecast'
+bestHour(hours, now): index | null            // calmest off-peak hour not over yet; ties → earlier
+calmStretch(hours, best): {start, end}        // end exclusive
+isStale(generatedAt, now): boolean            // > 3 hours old, or the night has ended
+```
 
-| # | Step | What gets built | Done when | Rough time |
-|---|---|---|---|---|
-| 1 | **Data** | Fetch scripts, eGRID factors with citation, forecast fit, 7-night backtest vs option (b) | Backtest numbers are in `data-notes.md` | ~2 h |
-| 2 | **Pipeline** | `backend/cleanr/` package, tests, writes `tonight.json` | `python -m cleanr` writes a valid file for tonight and tests pass | ~1.5 h |
-| 3 | **Frontend scaffold** | Vite + React + Tailwind, tokens, fonts, loads `tonight.json` | The app shows tonight's real hours as a plain list | ~1 h |
-| 4 | **Port the prototype** | Skyline canvas, scrubber, both lenses, share sheet, .ics | Matches the prototype on a phone, keyboard works, reduced motion is still | ~3–4 h |
-| 5 | **Ship** | GitHub Actions (CI + hourly deploy), Pages, README with screenshots | The live URL works on Janhavi's phone | ~1–1.5 h |
+## Review focus (most likely to bite a real person)
+1. **Viewer outside New York** (a recruiter in London): times and "Now" must still be NYC. Test in 3.3.
+2. **Opening between 8 AM and 6 PM**: the coming night, every hour Forecast, no "Now" row. Tests in 2.2 and 3.3.
+3. **Late or failed hourly update**: never show a best hour in the past; show "Data delayed". Test in 3.3.
+4. **Daylight saving night (Oct 31 → Nov 1, 2026)**: 16 hours, "1 AM" twice; nothing assumes 15. Tests in 2.2 and 4.1.
+5. **NYISO file missing (just after midnight)**: fall back to the latest file; never publish a broken file. Tests in 1.2 and 2.3.
 
-Total ≈ 9–10 hours of build time. The times are estimates. If we run behind, step 4 polish is the first thing to trim.
+---
 
-### Step 1: Data
-- `backend/` venv + `requirements.txt` (pandas, pytest).
-- Fetch rtfuelmix, pal, isolf: daily files for recent days, monthly zips for older ones.
-- Hourly mix per group; intensity with eGRID factors.
-- Fit `gas MW = a + b × load MW` on 14 days; check it's a good fit.
-- Backtest the last 7 nights: average error, and "was the picked best hour among the 3 calmest?".
-  Same for option (b), as a baseline.
-- **Commits:** `chore: set up python backend`, `feat: fetch nyiso data and compute intensity`,
-  `docs: record emission factors and backtest`.
+## Step 1: Data foundations (backend)
+*In plain words: teach the computer to read NYISO's data, turn it into "how dirty is each hour", and guess the hours that haven't happened yet. Then check how good the guess is.*
 
-### Step 2: Pipeline
-- Modules: `fetch.py`, `intensity.py`, `forecast.py`, `tonight.py`, `main.py` (see `backend/README.md`).
-- Handles: today's file missing after midnight, the 6 PM–8 AM night across two dates,
-  timezone-aware time (daylight saving ends 2026-11-01), mix rounding to exactly 100.
-- Tests (pytest): intensity math, labels by thirds, best hour inside off-peak, calm stretch,
-  mix sums to 100, the DST night.
-- Writes `frontend/public/tonight.json` (generated, not committed) plus one committed sample for tests.
-- **Commits:** `feat: build tonight model`, `test: cover best hour and labels`.
+- [ ] **1.1 Project setup + city config.** `backend/` venv, `requirements.txt` (pandas, pytest, jsonschema),
+  `cleanr/config.py` with the night, off-peak window, time zone, feed URLs and the fuel→group map.
+  *Done when:* `pytest` runs and a config test passes.
+- [ ] **1.2 Fetching.** `fetch.py`: daily file first, monthly zip if older, a clear `DataMissing` error if absent.
+  Local download cache (git-ignored). Tests use small saved CSVs, never the network.
+  *Done when:* tests cover daily, zip fallback and missing file.
+- [ ] **1.3 Hourly mix + intensity.** `mix.py` averages 5-minute rows into clock hours (timestamps mark interval
+  ends). `emission_factors.py` holds eGRID values + citation. `intensity.py` does the weighted average.
+  *Done when:* tests pass for a hand-worked hour and for the DST day.
+- [ ] **1.4 Forecast.** `forecast.py`: gas from forecast load (variant `load`) or from load minus the clean
+  sources (variant `net_load`); nuclear and wind hold their latest value; hydro and other renewables use the
+  7-day same-hour average. Never negative.
+  *Done when:* tests recover a known straight line from made-up data.
+- [ ] **1.5 Backtest.** `scripts/backtest.py` replays the last 7 nights for `load`, `net_load` and the
+  typical-pattern baseline (b). Reports average error (g/kWh) and "best hour among the actual 3 calmest".
+  *Done when:* results and the chosen variant are written in `data-notes.md`.
 
-### Step 3: Frontend scaffold
-- `npm create vite` (React) in `frontend/`, Tailwind v4, Google Fonts (Archivo, Space Grotesk, Doto, JetBrains Mono).
-- Tokens from `design-spec.md` in one CSS file, mapped into Tailwind.
-- Load `tonight.json` at runtime. Show a loading state, an error state, and "Data delayed" when it's over 3 h old.
-- **Commits:** `chore: scaffold frontend`, `feat: load tonight data`.
+## Step 2: The tonight model + contract
+*In plain words: put everything for tonight into one tidy file, with a rulebook that the file must follow.*
 
-### Step 4: Port the prototype
-Port faithfully from `cleanr-prototype.html`, split into the components listed in `frontend/README.md`.
+- [ ] **2.1 Contract.** `docs/tonight.schema.json` (JSON Schema) and `backend/samples/tonight.sample.json`.
+  *Done when:* a test validates the sample against the schema.
+- [ ] **2.2 Tonight model.** `tonight.py`: picks the night (current night before 8 AM, else the coming one),
+  joins actual + forecast hours, labels by thirds, rounds the mix to exactly 100, adds `now`.
+  *Done when:* tests pass for thirds, rounding, the which-night rule and the 16-hour DST night.
+- [ ] **2.3 Command.** `python -m cleanr --out <path>`: builds, validates against the schema, writes the file
+  only if valid (write to a temp file, then rename), exits non-zero on failure.
+  *Done when:* tests prove a bad model never gets written.
+- [ ] **2.4 Real run.** Run on live NYISO data and read tonight's numbers by eye.
+  *Done when:* **Checkpoint 1:** Janhavi looks at tonight's labels and the best hour.
 
-V1 changes from the prototype (from today's decisions):
-- **Remove** "Tonight on the wall", the borough picker, and "Post to the wall".
-- **Source list:** Nuclear · Hydro · Wind · Other renewables · Gas. No Solar row or Solar scene label.
-- "Why hours differ" → Weather card says wind only.
-- Footnote: "Gas includes dual-fuel and oil plants."
-- Info tooltip and copy say Calm is **relative to tonight**.
+## Step 3: Frontend foundations
+*In plain words: build the empty house with the right paint and wiring, and make it read the data file.*
 
-Fixes from the prototype's known issues:
-- Forecast / Actual / Live shown on hour rows and the scrubber tag.
-- Reduced motion stops the animation loop completely.
-- The moon no longer hides behind the scrubber tag (1–3 AM).
-- Never "cleanest". The grid lens heading becomes "Now vs calmest hour".
-- Before 6 PM: all hours are Forecast and there's no "Now" row. "Powering New York now" uses `now` from the JSON.
+- [ ] **3.1 Scaffold.** Vite + React in `frontend/`, Tailwind v4 with the tokens in `tokens.css`, the 4 Google
+  Fonts, base path `/cleanr-nyc/`, Vitest.
+  *Done when:* `npm run dev`, `npm test` and `npm run build` all work.
+- [ ] **3.2 Data loading.** `loadTonight.js` fetches `tonight.json` (cache-busted) with loading, error and
+  stale states.
+  *Done when:* tests cover OK, error and stale.
+- [ ] **3.3 Clock logic.** `time.js` (New York time, "3 AM" formatting) and `model.js`
+  (`statusOf`, `bestHour`, `calmStretch`, `isStale`), test-first.
+  *Done when:* tests pass, including a run with the machine set to a non-NYC time zone and a stale file.
+- [ ] **3.4 App shell.** `App.jsx` holds `{ lens, selectedHour }`; AppBar, LensSwitch and a plain hour list.
+  *Done when:* the browser shows tonight's real hours as a list.
 
-Real features (toasts in the prototype):
-- **Add to calendar:** `.ics` made in the browser, a 1-hour event at the best hour,
-  "Charge the car · calmest at 3 AM".
-- **Share sheet:** 9:16 ticket card. "Save for Instagram Stories" makes a 1080×1920 PNG.
-  On phones that support it, the native share sheet opens with the image.
+## Step 4: Port the prototype
+*In plain words: dress the house to look exactly like the approved design, with the V1 changes.*
 
-Check: side by side with the prototype at 390px width, keyboard only, VoiceOver labels, reduced motion.
-- **Commits:** one per component group, e.g. `feat: port skyline canvas`, `feat: add scrubber`,
-  `feat: tonight lens`, `feat: grid lens`, `feat: share sheet and calendar`.
+- [ ] **4.1 Scene + scrubber.** Port the skyline drawing; hour count comes from the data; reduced motion =
+  one still frame, no loop; pause when off screen; fix the moon hiding behind the tag. Scrubber with pointer +
+  keyboard + slider labels.
+  *Done when:* it matches the prototype side by side, and works with 15 and 16 hours.
+- [ ] **4.2 Board card + calendar.** Both lens versions, info tooltip (relative-label copy), and
+  `ics.js` for "Add to calendar" (1-hour event at the best hour).
+  *Done when:* the .ics test passes and the file opens in Apple Calendar.
+- [ ] **4.3 Tonight lens.** Hour rows with Actual / Live / Forecast tags, "Why 3 AM?" card that jumps to
+  The grid, Coming soon chips.
+- [ ] **4.4 The grid lens.** 100-dot mix, 5-row source list, Now vs calmest hour bars, "Why hours differ",
+  footnotes (statewide; gas includes dual-fuel and oil), labels over the scene.
+- [ ] **4.5 Share sheet.** Ticket card, "Save for Instagram Stories" (1080×1920 PNG, `storyImage.js`),
+  native share on phones, focus handling.
+  *Done when:* **Checkpoint 2:** checked at 390px wide, keyboard only, VoiceOver, reduced motion,
+  and on Janhavi's phone.
 
-### Step 5: Ship
-- `.github/workflows/ci.yml`: on push to `develop`, run pytest + frontend build.
-- `.github/workflows/deploy.yml`: on push to `main`, hourly (at :10 past the hour), and manual:
-  run pipeline → build frontend → deploy to GitHub Pages.
-- If the pipeline fails, the last deploy stays live and the app shows "Data delayed".
-- **Janhavi, once:** repo Settings → Pages → Source: **GitHub Actions**.
-- README: what, why, how it works, data sources, method, backtest results, screenshots, limitations.
-- Merge `develop` → `main` = the V1 release.
-- **Commits:** `ci: add test and deploy workflows`, `docs: v1 readme and screenshots`.
+## Step 5: Ship
+*In plain words: put the house on the internet, set it to refresh itself every hour, and write the guidebook.*
 
-## Checkpoints with Janhavi
-1. **After step 2:** look at tonight's real numbers. Do the labels and best hour feel right?
-2. **After step 4:** try it on your phone (local network link).
-3. **Step 5:** turn on Pages, OK the release to `main`, check the live URL on your phone.
+- [ ] **5.1 CI.** `ci.yml`: on push to `develop`, run pytest, Vitest and the build.
+  *Done when:* the first run is green on GitHub.
+- [ ] **5.2 Deploy.** `deploy.yml`: on push to `main`, hourly at :10 and manual. Runs the pipeline, builds, deploys
+  to Pages. Minimal permissions, one deploy at a time. If the pipeline fails, the old site stays up.
+- [ ] **5.3 Go live.** Janhavi turns on Pages (Settings → Pages → Source: GitHub Actions). First deploy.
+  *Done when:* the URL works, and the JSON updates on the next hourly run.
+- [ ] **5.4 README.** What, why, how it works (the picture above), data and method, backtest results,
+  screenshots, limitations, credits.
+- [ ] **5.5 Release.** Final whole-project review (superpowers:requesting-code-review), merge `develop` →
+  `main`, tag `v1.0.0`, update `progress.md`.
+  *Done when:* **Checkpoint 3:** the live URL works on Janhavi's phone.
+
+---
 
 ## Definition of done (V1)
 - [ ] Live public URL that works well on a phone.
-- [ ] Real NYISO data, refreshed hourly.
-- [ ] Every hour labelled Actual / Live / Forecast. Copy follows the honesty rules.
-- [ ] Keyboard and reduced motion work.
-- [ ] README: what, why, how it works, data sources, method, backtest, screenshots.
+- [ ] Real NYISO data, refreshed every hour.
+- [ ] Every hour shows Actual / Live / Forecast, and the copy follows the honesty rules.
+- [ ] Keyboard, screen reader labels and reduced motion all work.
+- [ ] README: what, why, how, data sources, method, backtest, screenshots.
+- [ ] All tests pass in CI.
 
 ## Risks
 | Risk | Plan |
 |---|---|
-| Forecast is weak (wind, imports) | The backtest shows it honestly. Hours are labelled Forecast. Improve after V1 |
-| Relative labels always show some Calm hours, even on a high-carbon night | Copy says "calm compared with the rest of tonight" |
-| Very flat night: tiny differences get different labels | Check in step 1 data; decide if a minimum spread is needed |
-| NYISO file late or missing | Fall back to the latest available file; "Data delayed" note |
-| GitHub's hourly schedule runs a few minutes late, and pauses after 60 days with no repo activity | Acceptable for V1; noted in README |
-| Time runs short | Trim step 4 polish first; never cut the honesty labels |
+| Forecast is weak (wind, imports) | The backtest shows it honestly; hours say Forecast; improve after V1 |
+| Thirds always produce some Calm hours, even on a bad night | Copy says "compared with the rest of tonight" |
+| Very flat night: tiny differences get different labels | Look at the spread in the step 1 data; decide then |
+| GitHub's hourly schedule runs late or pauses after 60 days with no activity | "Data delayed" state; noted in README |
+| Time runs short | Trim step 4 polish first; never cut the honesty labels or tests |
 
 ## Not in V1 (fast follows)
-The wall (and its storage) · Solar as its own source · money / rate plans · environmental justice / peaker story ·
+The wall · Solar as its own source · money / rate plans · environmental justice / peaker story ·
 laundry, dishwasher, devices (chips only) · other cities · fast chargers · accounts · notifications · charger finding.

@@ -31,6 +31,22 @@
 - **Ask before you:** push, open a PR, install packages, add dependencies, delete files,
   change git history, or touch anything outside this repo.
 - **Janhavi makes the commits.** Prefer giving the git commands to run over running them silently.
+- **ADHD-friendly:** very simple words, short lines, no big blocks of text. Never overwhelm.
+
+## Step reports (after every plan step)
+Use this exact shape, short and in plain words:
+1. **What we did:** 3–5 bullets.
+2. **Example:** one real, concrete example from this step (e.g. a real number from tonight's data).
+3. **Analogy:** one everyday comparison that explains it.
+4. **What's next:** what the next step does, in 2–3 bullets.
+5. **Next step for Janhavi:** one line.
+
+## How we build (Superpowers)
+- The Superpowers plugin is installed. Follow its process: plan first, then
+  **test-driven-development** (failing test → code → passing test) and
+  **verification-before-completion** (run the check before saying "done").
+- The plan is `docs/plan.md`: **5 steps, at most 5 substeps each.** Don't grow it into 20–30 tasks.
+- Act as a senior software architect: clear boundaries, small focused files, one contract between parts.
 
 ## Git workflow
 - **V1 sprint (deadline 2026-10-15 evening):** commit straight to `develop` when Janhavi asks.

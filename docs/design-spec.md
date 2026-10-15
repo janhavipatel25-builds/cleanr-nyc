@@ -139,4 +139,6 @@ The prototype also uses a few supporting values (`--led-dim #2B2420`, `--board #
 - **Solar:** NYISO's feed has no Solar category. Solar is parked; the row becomes "Other renewables".
 - **Relative labels:** the info tooltip must say Calm means calm compared with the rest of tonight.
 - **Before 6 PM:** every hour is Forecast and there's no "Now" row. This state isn't in the prototype.
+- **Hour count:** the prototype hard-codes 15 hours. The daylight-saving night has 16, so the port reads the count from the data.
+- **"Data delayed":** a small note when the data is over 3 hours old or the night has ended. Not in the prototype.
 - **Calendar and Stories buttons** only show toasts in the prototype. They need real implementations.

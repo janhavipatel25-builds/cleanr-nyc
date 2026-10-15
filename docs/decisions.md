@@ -29,3 +29,9 @@ Newest at the bottom. Format: **date · decision · why**.
 | 2026-10-15 | Dual Fuel and Other Fossil Fuels counted under Gas, with a footnote. | Keeps the source list simple. All three burn fossil fuel. |
 | 2026-10-15 | "Tonight on the wall" moved to a fast follow; storage decided later. | Needs shared storage. Not needed to ship V1. |
 | 2026-10-15 | Installing packages and tools is allowed for the sprint. | Needed to build in one day. |
+| 2026-10-15 | Use the Superpowers skills (plan, test first, verify before claiming done). Plan shape: 5 steps × at most 5 substeps. | Owner's request. A disciplined process with a plan that's easy to follow. |
+| 2026-10-15 | The pipeline owns the data (mix, intensity, forecast, labels). The app owns anything clock-based (Live, best hour, calm stretch, stale). | The hourly job can run late; the best hour must never be in the past. |
+| 2026-10-15 | All times in New York time, whatever the viewer's time zone. | Recruiters may view from anywhere; the answer is about New York nights. |
+| 2026-10-15 | A JSON Schema file is the contract between pipeline and app. A file that breaks it is never published. | Catches mistakes before users see them; the app can trust its input. |
+| 2026-10-15 | City settings (time zone, night, off-peak, feeds) live in one config file. | Keeps the code city-agnostic at almost no cost. |
+| 2026-10-15 | Backtest two forecast versions (`load`, `net_load`) against the baseline; ship the best. | Let the data choose, and get an honest accuracy number for the README. |

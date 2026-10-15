@@ -12,21 +12,24 @@ It's a **pipeline, not a server**: a script that runs on a schedule, does its wo
 A **GitHub Actions** cron job will run it (e.g. hourly) and publish the JSON.
 See `docs/data-notes.md` for sources, method and open questions.
 
-## Planned structure (sprint steps 1–2, see `docs/plan.md`)
+## Planned structure (plan steps 1–2, see `docs/plan.md`)
 ```
 backend/
 ├── requirements.txt
 ├── cleanr/
+│   ├── config.py             ← city settings: time zone, night, off-peak, feeds, fuel groups
 │   ├── fetch.py              ← download NYISO CSVs (daily files + monthly zips)
-│   ├── intensity.py          ← fuel mix → g CO₂/kWh
+│   ├── mix.py                ← 5-minute rows → hourly MW per group
 │   ├── emission_factors.py   ← EPA eGRID factors + citation
-│   ├── forecast.py           ← gas from the load forecast (option a)
-│   ├── tonight.py            ← hour model, labels, best hour, calm stretch
-│   └── main.py               ← runs the steps, writes tonight.json
-├── scripts/backtest.py       ← step 1: test the forecast on past nights
+│   ├── intensity.py          ← hourly mix → g CO₂/kWh
+│   ├── forecast.py           ← predict the hours that haven't happened yet
+│   ├── tonight.py            ← tonight's hours + labels → the tonight.json content
+│   └── __main__.py           ← `python -m cleanr --out <path>`: build, check, write
+├── scripts/backtest.py       ← test the forecast on past nights
 ├── samples/tonight.sample.json
-└── tests/                    ← pytest: intensity, labels, best hour, calm stretch, DST
+└── tests/                    ← pytest, with small saved CSVs (no network)
 ```
+The output must follow `docs/tonight.schema.json`. The best hour and calm stretch are worked out in the app.
 
 ## Commands
 _To be filled in once the pipeline exists._

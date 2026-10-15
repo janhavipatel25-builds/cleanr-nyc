@@ -94,9 +94,12 @@ For each future hour:
 
 - Forecast load = the `NYISO` column of the latest `isolf` file.
 - Training data = actual load (`pal`, summed) + actual mix (`rtfuelmix`), from daily files + monthly zips.
-- **Backtest (sprint step 1):** run the method on each of the last 7 nights and compare with what happened.
+- Two versions of the gas line are tested:
+  - `load`: gas MW from forecast load.
+  - `net_load`: gas MW from forecast load **minus** the predicted clean sources (gas fills what's left).
+- **Backtest (plan step 1.5):** run both on each of the last 7 nights and compare with what happened.
   Report the average error (g/kWh) and whether the picked best hour was among the actual 3 calmest.
-  Compare with option (b), the typical-pattern baseline. Results go here and in the README.
+  Compare with option (b), the typical-pattern baseline. The best version wins. Results go here and in the README.
 
 ## Labels: relative to tonight (decided 2026-10-15)
 No fixed numbers. Labels come from **tonight's own hours** (actual + forecast, 6 PM → 8 AM):
@@ -105,14 +108,21 @@ No fixed numbers. Labels come from **tonight's own hours** (actual + forecast, 6
   (33rd and 67th percentiles of tonight's intensities).
 - Copy must make this clear: "Calm" means calm **compared with the rest of tonight**.
 
-## Best hour and calm stretch
+## Best hour and calm stretch (worked out in the app)
 - **Best hour** = the lowest-intensity hour inside Con Ed off-peak (12–8 AM) that isn't over yet
   (the current hour counts). Ties → the earlier hour.
 - **Calm stretch** = the consecutive Calm hours around the best hour, still inside off-peak.
+- These depend on the clock, so the **app** works them out, not the pipeline. A late hourly update
+  can then never show a best hour that's already over.
 
 ## Which night is "tonight"
 - **8 AM → 6 PM:** the coming night. Every hour is Forecast.
 - **6 PM → 8 AM:** the current night. Past hours Actual, current hour Live, later hours Forecast.
+- The pipeline picks the night when it runs. If the app finds the night already over, it shows "Data delayed".
+
+## Time zone
+- Everything is **New York time** (`America/New_York`), for the pipeline and the app,
+  even if the viewer is somewhere else.
 
 ## Output: `tonight.json`
 Both lenses render from this one model. That shared model is the "systems thinking" story.
@@ -129,15 +139,16 @@ Both lenses render from this one model. That shared model is the "systems thinki
     { "time": "2026-10-15T18:00:00-04:00", "hourOfDay": 18, "intensity": 246, "label": "rush",
       "mix": { "nuclear": 22, "hydro": 19, "wind": 3, "otherRenewables": 3, "gas": 53 },
       "source": "actual" }          // "actual" | "forecast"
-    // … one per hour, 6 PM → 8 AM
+    // … one per hour, 6 PM → 8 AM (16 on the daylight-saving night)
   ],
-  "best": 9,                        // index into hours
-  "calmStretch": { "start": 8, "end": 11 },   // end is exclusive
   "meta": { "thresholds": { "p33": 198, "p67": 224 }, "emissionFactors": {}, "sources": [],
-            "forecastMethod": "gas-from-load-v1" }
+            "forecastMethod": "net_load-v1" }
 }
 ```
 
+- The exact rules live in **`docs/tonight.schema.json`** (plan step 2.1). The pipeline refuses to publish
+  a file that breaks them.
+- `best` and `calmStretch` are **not** in the file. The app works them out (see above).
 - `now` is the latest actual hour, used for "Powering New York now" even before 6 PM.
 - **Status shown in the app** is worked out from the viewer's clock:
   current hour = **Live**; otherwise **Actual** if `source` is `actual`, else **Forecast**.

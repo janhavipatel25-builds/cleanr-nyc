@@ -19,7 +19,8 @@ frontend/
     ├── main.jsx               ← entry point
     ├── App.jsx                ← holds UI state: { lens, selectedHour }
     ├── styles/tokens.css      ← colour + font tokens from the design spec
-    ├── lib/                   ← time formatting, data loading
+    ├── lib/                   ← time.js (NYC time), model.js (Live, best hour, calm stretch, stale),
+    │                            loadTonight.js, ics.js, storyImage.js (+ tests)
     └── components/
         ├── AppBar.jsx
         ├── LensSwitch.jsx
