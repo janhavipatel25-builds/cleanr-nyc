@@ -1,0 +1,618 @@
+<title>Cleanr NYC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600&family=Doto:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one mobile column. App bar → lens switch → shared pixel skyline with time scrubber on its top edge →
+   LED board overlapping the skyline's waterline → lens content (Tonight | The grid).
+   Deliberately single dark "night" theme (Terracotta Dark). State colour only on: labels, dots, best window. */
+:root {
+  --bg: #121113; --grid: rgba(255,255,255,0.04); --card: #19181A; --surface: #222124; --border: #2E2C30;
+  --fg: #ECE8E3; --muted: #9A958F; --faint: #6E6A66;
+  --primary: #E78A53; --primary-ink: #121113;
+  --calm: #7FB0B0; --busy: #F2B57A; --rush: #E5574B;
+  --led: #FFB547; --led-dim: #2B2420; --board: #0B0A0A; --board-line: #2A2622;
+  --src-nuclear: #A08BD6; --src-hydro: #4FA3AE; --src-wind: #8CC3E6; --src-solar: #F2B632; --src-gas: #9A928B;
+  --display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --body: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --dot: 'Doto', 'JetBrains Mono', ui-monospace, monospace;
+  --r: 14px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background-color: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.45;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 16px 16px; padding-inline: 16px; padding-block: 0 48px;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.app { max-width: 440px; margin: 0 auto; display: grid; gap: 0; }
+.mono { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+
+/* app bar */
+.appbar { display: flex; justify-content: space-between; align-items: center; padding-block: 16px 12px; gap: 12px; }
+.brand { font: 600 13px var(--mono); letter-spacing: .14em; white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--card); border-radius: 999px; padding: 6px 10px; font: 500 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--faint); }
+.chip svg { width: 10px; height: 10px; }
+
+/* lens switch */
+.lens { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); margin-bottom: 12px; }
+.lens button { border: 0; background: transparent; padding: 9px 8px; border-radius: 9px; font: 600 14px var(--body); color: var(--muted); cursor: pointer; transition: background-color .2s, color .2s; }
+.lens button[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+
+/* scene + scrubber */
+.scene { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); background: #0F1424; touch-action: pan-y; }
+.scene canvas { display: block; width: 100%; aspect-ratio: 160 / 112; image-rendering: pixelated; }
+.scrub { position: absolute; inset: 0 0 auto 0; padding: 10px 12px 0; }
+.scrub-track { position: relative; height: 28px; border-radius: 9px; background: rgba(8,8,10,.62); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(3px); cursor: grab; touch-action: none; display: grid; grid-template-columns: repeat(var(--n), 1fr); align-items: stretch; padding: 6px; gap: 3px; }
+.scrub-track:active { cursor: grabbing; }
+.tick { border-radius: 3px; background: var(--c); opacity: .75; }
+.tick.past { opacity: .3; }
+.win { position: absolute; top: 3px; bottom: 3px; border: 1.5px solid var(--fg); border-radius: 5px; pointer-events: none; }
+.thumb { position: absolute; top: -2px; bottom: -2px; width: 3px; margin-left: -1.5px; background: var(--led); box-shadow: 0 0 8px rgba(255,181,71,.7); border-radius: 2px; pointer-events: none; transition: left .12s ease-out; }
+.thumb-tag { position: absolute; top: 48px; transform: translateX(-50%); background: rgba(11,10,10,.88); border: 1px solid var(--border); border-radius: 7px; padding: 4px 8px; font: 500 12px var(--body); color: var(--fg); white-space: nowrap; pointer-events: none; transition: left .12s ease-out; display: inline-flex; gap: 6px; align-items: baseline; }
+.thumb-tag .tm { font: 800 13px var(--dot); color: var(--led); letter-spacing: .04em; }
+.scrub-ends { display: flex; justify-content: space-between; padding: 3px 2px 0; font: 500 9.5px var(--mono); color: rgba(236,232,227,.6); letter-spacing: .06em; }
+.timeline { position: absolute; top: 50px; bottom: 0; width: 1px; margin-left: -.5px; background: repeating-linear-gradient(to bottom, rgba(255,181,71,.45) 0 3px, transparent 3px 7px); pointer-events: none; transition: left .12s ease-out; }
+.srclabels { position: absolute; inset: 0; pointer-events: none; }
+.srclabel { position: absolute; transform: translateY(-50%); background: rgba(8,8,10,.78); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; padding: 3px 6px; font: 500 10px var(--mono); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; display: inline-flex; gap: 5px; align-items: center; transition: opacity .3s; }
+.srclabel i { width: 7px; height: 7px; display: inline-block; background: var(--c); }
+.srclabel b { font-weight: 500; color: var(--muted); }
+
+/* LED board */
+.boardcard { margin: 8px 0 0; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 16px 16px; display: grid; gap: 14px; }
+.board { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.info { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--muted); font: 600 14px var(--body); cursor: pointer; align-self: start; }
+.info:hover, .info[aria-expanded="true"] { color: var(--fg); border-color: var(--faint); background: var(--surface); }
+.tip { position: absolute; z-index: 5; right: 10px; top: calc(100% + 8px); width: min(320px, calc(100% - 20px)); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--muted); box-shadow: 0 12px 28px rgba(0,0,0,.45); text-wrap: pretty; }
+.tip b { color: var(--fg); font-weight: 600; }
+.board .ic { width: 48px; height: 48px; border-radius: 12px; background: var(--surface); display: grid; place-items: center; color: var(--primary); }
+.board .ic .px { width: 30px; height: 30px; }
+.board .txt { display: grid; gap: 4px; min-width: 0; }
+.board .k { font: 500 14px var(--body); color: var(--muted); }
+.board .time { font: 900 clamp(40px, 12vw, 48px)/1 var(--dot); color: var(--led); letter-spacing: .02em; }
+.board .big { font: 800 clamp(30px, 9vw, 38px)/1 var(--display); letter-spacing: -0.02em; }
+.board .k .tm { font: 800 15px var(--dot); color: var(--led); letter-spacing: .04em; }
+
+/* content */
+.view { display: grid; gap: 18px; padding-top: 18px; }
+.view.enter { animation: enter .28s cubic-bezier(.23,1,.32,1); }
+@keyframes enter { from { opacity: 0; transform: translateY(6px); } }
+.lede { margin: 0; font-size: 17px; color: var(--fg); text-wrap: pretty; }
+.lede b { font-weight: 600; }
+.lede .m { color: var(--muted); }
+.sec-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 6px 0 -6px; }
+.sec-h h2 { margin: 0; font: 700 19px var(--display); letter-spacing: -0.01em; }
+.sec-h .mono { color: var(--muted); }
+
+/* hour rows */
+.rows { background: var(--card); border-radius: var(--r); border: 1px solid var(--border); padding: 4px 0; }
+.row { width: 100%; display: grid; grid-template-columns: 52px 1fr 76px 44px; gap: 10px; align-items: center; padding: 8px 14px; border: 0; background: transparent; text-align: left; cursor: pointer; font: 500 14px var(--body); color: var(--fg); border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: 0; }
+.row:hover { background: rgba(255,255,255,.025); }
+.row .t { font: 800 15px var(--dot); color: var(--led); letter-spacing: .04em; }
+.row .bar { display: flex; gap: 2px; }
+.row .bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--led-dim); }
+.row .bar i.on { background: var(--c); box-shadow: 0 0 5px var(--c); }
+.row .lab { color: var(--c); }
+.row .tag { font: 600 11px var(--body); color: var(--faint); text-align: right; }
+.row.past { opacity: .55; }
+.row.best { background: linear-gradient(90deg, rgba(127,176,176,.16), transparent 80%); }
+.row.best .tag { color: var(--calm); }
+.row.sel { box-shadow: inset 3px 0 0 var(--led); }
+.row.now .t { font: 600 14px var(--body); color: var(--fg); letter-spacing: 0; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+.card h3 { margin: 0; font: 700 17px var(--display); letter-spacing: -0.01em; }
+.card p { margin: 0; color: var(--muted); text-wrap: pretty; }
+.card p b { color: var(--fg); font-weight: 500; }
+.link { justify-self: start; border: 0; background: transparent; padding: 0; color: var(--primary); font-weight: 600; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.btns { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; border-radius: 12px; padding: 13px 16px; font: 600 15px var(--body); border: 1px solid transparent; cursor: pointer; transition: transform .12s cubic-bezier(.23,1,.32,1), filter .15s; touch-action: manipulation; }
+.btn:active { transform: scale(.97); }
+.btn-p { background: var(--primary); color: var(--primary-ink); }
+.btn-p:hover { filter: brightness(1.06); }
+.btn-g { background: transparent; color: var(--fg); border-color: var(--border); }
+.btn-g:hover { background: var(--surface); }
+.btn svg { width: 16px; height: 16px; }
+
+.soon { display: flex; gap: 8px; flex-wrap: wrap; }
+.soon span { display: inline-flex; align-items: center; gap: 6px; border: 1px dashed var(--border); border-radius: 999px; padding: 6px 10px; font-size: 13px; color: var(--faint); }
+.soon svg { width: 14px; height: 14px; }
+
+.wall { list-style: none; margin: 0; padding: 0; display: grid; }
+.wall li { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
+.wall li:last-child { border-bottom: 0; }
+.wall .ago { color: var(--faint); }
+.wall li.fresh { animation: fresh 1.6s ease-out; }
+@keyframes fresh { from { background: rgba(231,138,83,.18); } }
+
+/* grid lens */
+.mixwrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; display: grid; gap: 12px; }
+.mixhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font: 600 14px var(--body); color: var(--fg); }
+.dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; }
+.dots i { aspect-ratio: 1; border-radius: 50%; background: var(--c); box-shadow: 0 0 5px color-mix(in srgb, var(--c) 55%, transparent); transition: background-color .35s ease, box-shadow .35s ease; transition-delay: calc(var(--i) * 6ms); }
+.split { display: flex; justify-content: space-between; font: 500 11px var(--mono); letter-spacing: .05em; color: var(--muted); text-transform: uppercase; }
+.split b { color: var(--fg); font-weight: 500; }
+.srcs { list-style: none; margin: 0; padding: 0; display: grid; }
+.srcs li { display: grid; grid-template-columns: 24px 1fr auto auto; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.srcs li:last-child { border-bottom: 0; }
+.srcs .px { width: 20px; height: 20px; }
+.srcs .nm { font-size: 15px; font-weight: 500; }
+.srcs .nm small { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; }
+.srcs .pct { font: 500 15px var(--mono); font-variant-numeric: tabular-nums; text-align: right; min-width: 3.2ch; }
+.srcs .dl { font: 500 11px var(--mono); font-variant-numeric: tabular-nums; color: var(--faint); min-width: 7ch; text-align: right; }
+.srcs .dl.up { color: var(--busy); } .srcs .dl.down { color: var(--calm); }
+.cmp { display: grid; gap: 10px; }
+.cmp-row { display: grid; grid-template-columns: 64px 1fr 48px; gap: 10px; align-items: center; }
+.cmp-row .t { font: 800 13px var(--dot); letter-spacing: .06em; color: var(--led); text-transform: uppercase; }
+.cmp-row .bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; background: var(--led-dim); }
+.cmp-row .bar span { height: 100%; transition: width .35s ease; }
+.cmp-row .v { font: 500 12px var(--mono); text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.role { background: var(--surface); border-radius: 10px; padding: 10px; display: grid; gap: 4px; align-content: start; }
+.role b { font: 600 13px var(--body); }
+.role span { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+@media (max-width: 380px) { .roles { grid-template-columns: 1fr; } }
+.px { display: block; shape-rendering: crispEdges; }
+.px .m { fill: currentColor; }
+
+.foot { padding-top: 20px; margin-top: 8px; border-top: 1px solid var(--border); color: var(--faint); display: grid; gap: 4px; font-size: 12.5px; }
+
+/* sheets */
+.sheet-bg { position: fixed; inset: 0; background: rgba(5,5,6,.66); z-index: 30; display: grid; place-items: end center; padding: 12px; }
+.sheet { width: min(440px, 100%); max-height: calc(100% - 12px); overflow: auto; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px; animation: up .28s cubic-bezier(.23,1,.32,1); overscroll-behavior: contain; }
+@keyframes up { from { transform: translateY(16px); opacity: 0; } }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; }
+.sheet-h h3 { margin: 0; font: 700 18px var(--display); }
+.x { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: transparent; cursor: pointer; }
+.opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.opts button { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 12px 6px; font: 600 15px var(--body); cursor: pointer; }
+.opts button[aria-pressed="true"] { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); color: var(--primary); }
+.hint { margin: 0; color: var(--muted); font-size: 13.5px; }
+.ticket { width: 100%; max-width: 240px; margin: 0 auto; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; background: var(--board); border: 1px solid var(--board-line); display: grid; grid-template-rows: 52% 1fr; position: relative; }
+.ticket canvas { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
+.ticket .tb { padding: 12px 14px; display: grid; align-content: space-between; border-top: 2px dashed #2a2622; }
+.ticket .k { font: 500 12px var(--body); color: var(--muted); }
+.ticket .big { font: 900 34px/1 var(--dot); color: var(--led); margin-top: 6px; }
+.ticket .lb { font: 600 13px var(--body); margin-top: 8px; color: var(--calm); }
+.ticket .ft { display: flex; justify-content: space-between; font: 500 9px var(--mono); letter-spacing: .1em; color: var(--muted); text-shadow: none; }
+select { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); font: 500 15px var(--body); }
+label.f { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 40; background: var(--fg); color: var(--bg); padding: 10px 14px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .view.enter, .sheet, .wall li.fresh { animation: none; }
+  .dots i, .thumb, .thumb-tag, .timeline { transition: none; }
+}
+</style>
+
+<main class="app">
+  <header class="appbar">
+    <span class="brand">CLEANR / NYC</span>
+    <span class="chip" id="dateChip" style="cursor:default">Tonight</span>
+  </header>
+
+  <div class="lens" role="tablist" aria-label="View">
+    <button type="button" role="tab" id="tab-tonight" aria-selected="true" aria-controls="view-tonight">Tonight</button>
+    <button type="button" role="tab" id="tab-grid" aria-selected="false" aria-controls="view-grid">The grid</button>
+  </div>
+
+  <div class="scene" id="scene">
+    <canvas id="sky" width="160" height="112" role="img" aria-label="Pixel New York skyline at the selected hour"></canvas>
+    <div class="srclabels" id="srclabels" hidden></div>
+    <div class="timeline" id="timeline"></div>
+    <div class="scrub">
+      <div class="scrub-track" id="track" role="slider" tabindex="0" aria-label="Time of night" aria-valuemin="0" aria-valuemax="14" aria-valuenow="3" aria-valuetext="9 PM, Busy"></div>
+      <div class="scrub-ends"><span>6 PM</span><span>8 AM</span></div>
+    </div>
+  </div>
+
+  <div class="boardcard">
+    <div class="board" id="board" aria-live="polite"></div>
+    <div class="btns" id="boardActions">
+      <button class="btn btn-p" type="button" id="calBtn"></button>
+      <button class="btn btn-g" type="button" id="shareBtn" aria-label="Share">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M5 5l3-3 3 3M3 9v4h10V9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Share
+      </button>
+    </div>
+  </div>
+
+  <!-- TONIGHT -->
+  <section class="view" id="view-tonight" role="tabpanel" aria-labelledby="tab-tonight">
+
+    <div class="sec-h"><h2>Tonight, hour by hour</h2><span class="mono">Tap an hour</span></div>
+    <div class="rows" id="rows"></div>
+
+    <div class="card">
+      <h3 id="whyH">Why 1 AM?</h3>
+      <p id="whyP"></p>
+      <button class="link" type="button" id="whyBtn">See the grid at 1 AM →</button>
+    </div>
+
+    <div class="sec-h"><h2>Tonight on the wall</h2><span class="mono">Anonymous</span></div>
+    <ul class="wall" id="wall"></ul>
+
+    <div class="sec-h"><h2>Coming soon</h2></div>
+    <div class="soon" id="soon"></div>
+  </section>
+
+  <!-- THE GRID -->
+  <section class="view" id="view-grid" role="tabpanel" aria-labelledby="tab-grid" hidden>
+    <p class="lede" id="gridLede"></p>
+    <div class="mixwrap">
+      <div class="mixhead"><span id="mixTitle">Mix at 9 PM</span><span id="mixClean">48% clean</span></div>
+      <div class="dots" id="dots" role="img" aria-label="100 dots, one per percent of power"></div>
+      <div class="split"><span>Clean <b id="cleanPct">48%</b></span><span>Gas <b id="gasPct">52%</b></span></div>
+    </div>
+    <ul class="srcs" id="srcs"></ul>
+
+    <div class="sec-h"><h2>Now vs the best hour</h2><span class="mono">Gas share</span></div>
+    <div class="card cmp" id="cmp"></div>
+
+    <div class="sec-h"><h2>Why hours differ</h2></div>
+    <div class="roles">
+      <div class="role"><b>Steady</b><span>Nuclear and hydro run about the same all night.</span></div>
+      <div class="role"><b>Weather</b><span>Wind and sun come and go. Solar is zero at night.</span></div>
+      <div class="role"><b>Flex</b><span>Gas plants ramp up and down to match demand. Busy hours burn more gas.</span></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span class="mono">Prototype v1 · mock data</span>
+    <span>Statewide fuel mix from NYISO, New York's grid operator. NYC runs on the state grid. Future hours are forecasts and may shift.</span>
+  </footer>
+</main>
+
+
+<!-- share sheet -->
+<div class="sheet-bg" id="shareSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shareH">
+    <div class="sheet-h"><h3 id="shareH">Share tonight's window</h3><button class="x" type="button" data-close aria-label="Close">✕</button></div>
+    <div class="ticket">
+      <canvas id="tkSky" width="160" height="112"></canvas>
+      <div class="tb">
+        <div><div class="k">Charged at</div><div class="big" id="tkWin">3 AM</div><div class="lb">Tonight's calmest hour</div></div>
+        <div class="ft"><span>cleanr.nyc</span><span id="tkDate">Oct 11</span></div>
+      </div>
+    </div>
+    <label class="f" for="boro">Your borough (shown on the wall)
+      <select id="boro"><option>Brooklyn</option><option>Bronx</option><option>Manhattan</option><option>Queens</option><option>Staten Island</option></select>
+    </label>
+    <button class="btn btn-p" type="button" id="postBtn">Post to the wall anonymously</button>
+    <button class="btn btn-g" type="button" id="storyBtn">Save for Instagram Stories</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ============ DATA (mock) ============
+   One model drives both lenses: hours[] with the fuel mix per hour.
+   Swap for live NYISO fuel mix + a forecast later. Intensity is computed from the mix. */
+const START = 18, N = 15, NOW_I = 3;               // 6 PM → 8 AM, "now" = 9 PM
+const GAS =   [60,58,55,52,49,46,43,40,38,37,38,41,45,49,53];
+const WIND =  [ 5, 5, 6, 6, 7, 8, 9,10,11,11,10, 9, 8, 7, 6];
+const SOLAR = [ 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 5];
+const hours = GAS.map((gas, i) => {
+  const wind = WIND[i], solar = SOLAR[i], rest = 100 - gas - wind - solar;
+  const nuclear = Math.round(rest * .54), hydro = rest - nuclear;
+  const intensity = Math.round(gas * 4.4 + 8);     // g CO2/kWh, gas ≈ 440 g/kWh
+  const label = intensity >= 250 ? 'rush' : intensity >= 200 ? 'busy' : 'calm';
+  return { i, h: (START + i) % 24, mix: { nuclear, hydro, wind, solar, gas }, intensity, label, past: i < NOW_I, now: i === NOW_I };
+});
+const WORD = { calm: 'Calm', busy: 'Busy', rush: 'Rush hour' };
+const SHORT = { calm: 'Calm', busy: 'Busy', rush: 'Rush hr' };
+const SRC = [
+  ['nuclear', 'Nuclear', 'Steady, upstate'],
+  ['hydro', 'Hydro', 'Steady, Niagara & St. Lawrence'],
+  ['wind', 'Wind', 'Picks up at night'],
+  ['solar', 'Solar', 'Daylight only'],
+  ['gas', 'Gas', 'Follows demand']
+];
+const fmtH = h => { h = ((h % 24) + 24) % 24; const s = h < 12 ? 'AM' : 'PM'; return { n: h % 12 === 0 ? 12 : h % 12, s }; };
+const hr = h => { const f = fmtH(h); return `${f.n} ${f.s}`; };
+const hrS = h => { const f = fmtH(h); return `${f.n}${f.s[0]}`; };
+const rng = (a, b) => { const A = fmtH(a), B = fmtH(b); return A.s === B.s ? `${A.n}–${B.n} ${B.s}` : `${A.n} ${A.s}–${B.n} ${B.s}`; };
+
+/* ============ STATE ============ */
+const S = { lens: 'tonight', sel: NOW_I };
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* We don't know battery level or charge length, so we don't promise a finish time.
+   BEST = cleanest future hour inside Con Ed off-peak (12–8 AM).
+   W_   = the calm stretch around it (consecutive Calm hours, still off-peak). */
+const offPeak = x => x.h >= 0 && x.h < 8 && x.i >= NOW_I;
+const BEST = hours.filter(offPeak).reduce((a, x) => (!a || x.intensity < a.intensity ? x : a), null).i;
+function calmStretch() {
+  let s = BEST, e = BEST + 1;
+  while (s - 1 >= 0 && offPeak(hours[s - 1]) && hours[s - 1].label === 'calm') s--;
+  while (e < N && offPeak(hours[e]) && hours[e].label === 'calm') e++;
+  return { s, e, startH: hours[s].h, endH: hours[e - 1].h + 1 };
+}
+const W_ = calmStretch();
+const inBest = i => W_ && i >= W_.s && i < W_.e;
+const cleanShare = m => m.nuclear + m.hydro + m.wind + m.solar;
+
+/* ============ PIXEL ICONS ============ */
+const ICON = {
+  nuclear: ["..##.##..",".#..#..#.","#..#.#..#","#.#.#.#.#","#..#.#..#",".#..#..#.","..##.##.."],
+  hydro:   ["....#....","...###...","..#####..",".#######.",".#######.",".#######.","..#####.."],
+  wind:    ["....#....","....#....","....#....","..##.##..",".#..#..#.","....#....","...###..."],
+  solar:   ["#...#...#","...###...","..#####..","#.#####.#","..#####..","...###...","#...#...#"],
+  gas:     ["....#....","...##....","..###....","..####...",".######..",".###.##..","..#####.."],
+  laundry: ["#########","#.#.#...#","#########","#..###..#","#.#...#.#","#.#...#.#","#..###..#","#########"],
+  dish:    ["#########","#########","#.......#","#.#.#.#.#","#.#.#.#.#","#.......#","#########"],
+  phone:   ["..#####..","..#...#..","..#.#.#..","..##..#..","..#...#..","..#.#.#..","..#####.."],
+  cal:     [".#....#.","########","#......#","#.##.#.#","#......#","########"],
+  car:     ["...######...","..#......#..",".#........#.","############","#.##....##.#","############",".##......##."]
+};
+function px(name) { const m = ICON[name]; let r = ''; m.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') r += `<rect class="m" x="${x}" y="${y}" width="1" height="1"/>`; })); return `<svg class="px" viewBox="0 0 ${m[0].length} ${m.length}" aria-hidden="true">${r}</svg>`; }
+
+/* ============ BOARD ============ */
+function renderBoard() {
+  const b = document.getElementById('board'), h = hours[S.sel];
+  if (S.lens === 'tonight') {
+    b.innerHTML = `<span class="ic">${px('car')}</span>
+      <span class="txt"><span class="k">Best time to charge</span><span class="time">${hr(hours[BEST].h)}</span></span>
+      <button class="info" type="button" id="infoBtn" aria-expanded="false" aria-controls="infoTip" aria-label="Why this time">i</button>
+      <div class="tip" id="infoTip" role="tooltip" hidden><b>${hr(hours[BEST].h)} is tonight's calmest hour</b>: lowest demand, so the fewest gas plants are running. The grid stays calm from ${rng(W_.startH, W_.endH)}, all inside Con Ed's cheapest hours (12–8 AM). Charging any time in that stretch works.</div>`;
+  } else {
+    b.innerHTML = `<span class="ic" style="color:var(--src-hydro)">${px('wind')}</span>
+      <span class="txt"><span class="k">Powering New York at <span class="tm">${h.now ? 'now' : hr(h.h)}</span></span><span class="big">${cleanShare(h.mix)}% clean</span></span>`;
+  }
+}
+
+/* ============ SCRUBBER ============ */
+const track = document.getElementById('track');
+function renderTrack() {
+  track.style.setProperty('--n', N);
+  const step = `((100% - 12px + 3px) / ${N})`;
+  track.innerHTML = hours.map(x => `<span class="tick ${x.past ? 'past' : ''}" style="--c:var(--${x.label})"></span>`).join('')
+    + `<span class="win" style="left:calc(6px + ${W_.s} * ${step} - 3px);width:calc(${W_.e - W_.s} * ${step} + 3px)"></span>`
+    + `<span class="thumb" id="thumb"></span><span class="thumb-tag" id="thumbTag"></span>`;
+  placeThumb();
+}
+function colX(i) { const r = track.getBoundingClientRect(), inner = r.width - 12; return 6 + (i + .5) * (inner + 3) / N - 1.5; }
+function placeThumb() {
+  const x = colX(S.sel), h = hours[S.sel];
+  const th = document.getElementById('thumb'), tg = document.getElementById('thumbTag'), tl = document.getElementById('timeline');
+  th.style.left = x + 'px';
+  const tagW = 110, tw = track.getBoundingClientRect().width;
+  tg.style.left = Math.min(Math.max(x, tagW / 2 - 6), tw - tagW / 2 + 6) + 'px';
+  tg.innerHTML = `<span class="tm">${h.now ? 'NOW' : hr(h.h)}</span><span style="color:var(--${h.label})">${WORD[h.label]}</span>`;
+  tl.style.left = (12 + x) + 'px';
+  track.setAttribute('aria-valuenow', S.sel);
+  track.setAttribute('aria-valuetext', `${hr(h.h)}, ${WORD[h.label]}`);
+}
+function idxFromX(clientX) { const r = track.getBoundingClientRect(); const t = (clientX - r.left - 6) / (r.width - 12); return Math.max(0, Math.min(N - 1, Math.floor(t * N))); }
+let dragging = false;
+track.addEventListener('pointerdown', e => { dragging = true; track.setPointerCapture(e.pointerId); select(idxFromX(e.clientX)); });
+track.addEventListener('pointermove', e => { if (dragging) select(idxFromX(e.clientX)); });
+track.addEventListener('pointerup', () => dragging = false);
+track.addEventListener('pointercancel', () => dragging = false);
+track.addEventListener('keydown', e => {
+  const k = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
+  if (k) { e.preventDefault(); select(Math.max(0, Math.min(N - 1, S.sel + k))); }
+  if (e.key === 'Home') { e.preventDefault(); select(0); } if (e.key === 'End') { e.preventDefault(); select(N - 1); }
+});
+addEventListener('resize', placeThumb);
+
+/* ============ TONIGHT VIEW ============ */
+function renderTonight() {
+  const now = hours[NOW_I];
+  document.getElementById('calBtn').innerHTML = `${px('cal')}Add to calendar`;
+  document.getElementById('rows').innerHTML = hours.filter(x => x.i >= NOW_I).map(x => {
+    const on = Math.max(1, Math.round((x.intensity - 150) / 13));
+    let dots = ''; for (let d = 0; d < 10; d++) dots += `<i class="${d < on ? 'on' : ''}"></i>`;
+    const tag = x.i === BEST ? 'Best' : x.now ? 'Live' : '';
+    return `<button type="button" class="row ${x.now ? 'now' : ''} ${inBest(x.i) ? 'best' : ''} ${x.i === S.sel ? 'sel' : ''}" data-i="${x.i}" style="--c:var(--${x.label})" aria-pressed="${x.i === S.sel}" aria-label="${hr(x.h)}: ${WORD[x.label]}${inBest(x.i) ? ', in your charging window' : ''}">
+      <span class="t">${x.now ? 'Now' : hrS(x.h)}</span><span class="bar" aria-hidden="true">${dots}</span><span class="lab">${SHORT[x.label]}</span><span class="tag">${tag}</span></button>`;
+  }).join('');
+  const b = hours[BEST];
+  document.getElementById('whyH').textContent = `Why ${hr(b.h)}?`;
+  document.getElementById('whyP').innerHTML = `After midnight the city winds down. Nuclear and hydro keep running the same, so gas drops from <b>${now.mix.gas}%</b> of the mix now to <b>${b.mix.gas}%</b> at ${hr(b.h)}. Less gas per kWh, and it's off-peak pricing too.`;
+  document.getElementById('whyBtn').textContent = `See the grid at ${hr(b.h)} →`;
+}
+document.getElementById('rows').addEventListener('click', e => { const b = e.target.closest('.row'); if (b) select(+b.dataset.i); });
+document.getElementById('whyBtn').addEventListener('click', () => { setLens('grid'); select(BEST); document.getElementById('scene').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); });
+
+document.getElementById('soon').innerHTML = [['laundry', 'Laundry'], ['dish', 'Dishwasher'], ['phone', 'Devices']].map(([k, n]) => `<span>${px(k)}${n}</span>`).join('');
+const posts = [['Someone in Brooklyn', 'charged in tonight\'s calmest window.', '4m'], ['Someone in Queens', 'charged at 3 AM.', '22m'], ['Someone in the Bronx', 'waited out rush hour.', '1h']];
+function renderWall(fresh) { document.getElementById('wall').innerHTML = posts.slice(0, 4).map((p, i) => `<li class="${fresh && i === 0 ? 'fresh' : ''}"><span><b>${p[0]}</b> ${p[1]}</span><span class="mono ago">${p[2]}</span></li>`).join(''); }
+
+/* ============ GRID VIEW ============ */
+function renderGrid() {
+  const h = hours[S.sel], now = hours[NOW_I], m = h.mix, order = ['nuclear', 'hydro', 'wind', 'solar', 'gas'];
+  const cl = cleanShare(m);
+  document.getElementById('gridLede').innerHTML = h.now
+    ? `<b>Right now, ${cl}% of New York's power is clean.</b> <span class="m">Drag the timeline to watch the mix change through the night.</span>`
+    : `<b>At ${hr(h.h)}, ${cl}% clean</b> <span class="m">${cl > cleanShare(now.mix) ? `vs ${cleanShare(now.mix)}% now. Demand is lower, so fewer gas plants run.` : cl < cleanShare(now.mix) ? `vs ${cleanShare(now.mix)}% now. Higher demand pulls in more gas.` : 'about the same as now.'}</span>`;
+  document.getElementById('mixTitle').innerHTML = `Mix at <span style="font:800 15px var(--dot);color:var(--led)">${h.now ? 'NOW' : hr(h.h)}</span>`;
+  document.getElementById('mixClean').textContent = WORD[h.label];
+  document.getElementById('mixClean').style.color = `var(--${h.label})`;
+  document.getElementById('cleanPct').textContent = cl + '%';
+  document.getElementById('gasPct').textContent = m.gas + '%';
+  const dots = document.getElementById('dots');
+  if (!dots.children.length) dots.innerHTML = Array.from({ length: 100 }, (_, i) => `<i style="--i:${i}"></i>`).join('');
+  let k = 0; order.forEach(s => { for (let j = 0; j < m[s]; j++) dots.children[k++].style.setProperty('--c', `var(--src-${s})`); });
+  while (k < 100) dots.children[k++].style.setProperty('--c', 'var(--src-gas)');
+  document.getElementById('srcs').innerHTML = SRC.map(([s, n, note]) => {
+    const d = m[s] - now.mix[s];
+    const dl = h.now ? '' : d === 0 ? '±0' : (d > 0 ? '+' : '−') + Math.abs(d) + ' pts';
+    const cls = h.now || d === 0 ? '' : (s === 'gas' ? (d > 0 ? 'up' : 'down') : (d > 0 ? 'down' : 'up'));
+    return `<li><span style="color:var(--src-${s})">${px(s)}</span><span class="nm">${n}<small>${note}</small></span><span class="dl ${cls}">${dl}</span><span class="pct">${m[s]}%</span></li>`;
+  }).join('');
+  const cmpTarget = hours[BEST];
+  const rowsC = [[now, 'Now'], [cmpTarget, hrS(cmpTarget.h)]].concat(h.i !== NOW_I && h.i !== cmpTarget.i ? [[h, hrS(h.h)]] : []);
+  document.getElementById('cmp').innerHTML = rowsC.map(([x, t]) => `<div class="cmp-row"><span class="t">${t}</span><span class="bar" role="img" aria-label="${t}: ${x.mix.gas}% gas">${order.map(s => `<span style="width:${x.mix[s]}%;background:var(--src-${s})"></span>`).join('')}</span><span class="v">${x.mix.gas}% gas</span></div>`).join('')
+    + `<p class="hint">Clean sources on the left, gas on the right. Tonight's calmest hour (${hr(cmpTarget.h)}) runs on ${now.mix.gas - cmpTarget.mix.gas} points less gas than now.</p>`;
+  // scene labels
+  document.getElementById('srclabels').innerHTML = [
+    ['gas', 'left:3%', 66, `Gas ${m.gas}%`], ['wind', 'right:3%', 58, `Wind ${m.wind}%`],
+    ['nuclear', 'left:3%', 44, `↖ Upstate: nuclear + hydro ${m.nuclear + m.hydro}%`]
+  ].concat(m.solar ? [['solar', 'right:3%', 44, `Solar ${m.solar}%`]] : [])
+   .map(([s, x, y, t]) => `<span class="srclabel" style="${x};top:${y}%"><i style="--c:var(--src-${s})"></i>${t}</span>`).join('');
+}
+
+/* ============ SELECT / LENS ============ */
+function select(i) {
+  if (i === S.sel && !arguments[1]) { placeThumb(); return; }
+  S.sel = i; placeThumb(); renderBoard();
+  if (S.lens === 'tonight') { document.querySelectorAll('.row').forEach(r => { const on = +r.dataset.i === i; r.classList.toggle('sel', on); r.setAttribute('aria-pressed', on); }); }
+  else renderGrid();
+}
+function setLens(l) {
+  S.lens = l;
+  document.getElementById('tab-tonight').setAttribute('aria-selected', l === 'tonight');
+  document.getElementById('tab-grid').setAttribute('aria-selected', l === 'grid');
+  const vt = document.getElementById('view-tonight'), vg = document.getElementById('view-grid');
+  vt.hidden = l !== 'tonight'; vg.hidden = l !== 'grid';
+  const v = l === 'tonight' ? vt : vg; v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter');
+  document.getElementById('srclabels').hidden = l !== 'grid';
+  document.getElementById('boardActions').hidden = l !== 'tonight';
+  if (l === 'grid') renderGrid(); else renderTonight();
+  renderBoard();
+}
+document.getElementById('tab-tonight').addEventListener('click', () => setLens('tonight'));
+document.getElementById('tab-grid').addEventListener('click', () => setLens('grid'));
+document.querySelector('.lens').addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const t = S.lens === 'tonight' ? 'grid' : 'tonight'; setLens(t); document.getElementById('tab-' + t).focus(); } });
+
+/* ============ SHEETS ============ */
+let lastFocus = null;
+function openSheet(id) { lastFocus = document.activeElement; const s = document.getElementById(id); s.hidden = false; const f = s.querySelector('button:not([data-close]), select'); if (f) f.focus(); }
+function closeSheets() { document.querySelectorAll('.sheet-bg').forEach(s => s.hidden = true); if (lastFocus) lastFocus.focus(); }
+document.querySelectorAll('.sheet-bg').forEach(s => { s.addEventListener('click', e => { if (e.target === s || e.target.closest('[data-close]')) closeSheets(); }); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+
+/* info tooltip on the board card (click/tap, hover on desktop, Esc to close) */
+function setTip(open) { const b = document.getElementById('infoBtn'), t = document.getElementById('infoTip'); if (!b || !t) return; t.hidden = !open; b.setAttribute('aria-expanded', open); }
+document.getElementById('board').addEventListener('click', e => { if (e.target.closest('#infoBtn')) setTip(document.getElementById('infoTip').hidden); });
+document.getElementById('board').addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && e.target.closest('#infoBtn')) setTip(true); });
+document.getElementById('board').addEventListener('pointerout', e => { if (e.pointerType === 'mouse' && e.target.closest('#infoBtn')) setTip(false); });
+document.addEventListener('click', e => { if (!e.target.closest('#board')) setTip(false); });
+addEventListener('keydown', e => { if (e.key === 'Escape') setTip(false); });
+
+let toastT;
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3200); }
+document.getElementById('calBtn').addEventListener('click', () => toast(`Live site: downloads an invite, "Charge the car · calmest at ${hr(hours[BEST].h)}".`));
+document.getElementById('shareBtn').addEventListener('click', () => {
+  document.getElementById('tkWin').textContent = hr(hours[BEST].h);
+  document.getElementById('tkDate').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  drawScene(document.getElementById('tkSky').getContext('2d'), BEST, true);
+  openSheet('shareSheet');
+});
+document.getElementById('postBtn').addEventListener('click', () => {
+  const b = document.getElementById('boro').value;
+  posts.unshift([`Someone in ${b === 'Bronx' ? 'the Bronx' : b}`, `charged in tonight's calmest hour.`, 'now']);
+  closeSheets(); setLens('tonight'); renderWall(true); toast('Posted. No name attached.');
+  document.getElementById('wall').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+});
+document.getElementById('storyBtn').addEventListener('click', () => toast('Live site: saves a 1080×1920 image for Stories.'));
+
+/* ============ PIXEL SKYLINE ============ */
+const cv = document.getElementById('sky'), ctx = cv.getContext('2d', { willReadFrequently: true });
+const W = 160, H = 112, BASE = 82;
+const BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]].map(r => r.map(v => (v + .5) / 16));
+const hex = c => { const n = parseInt(c.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const mixc = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+const rgb = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+/* sky by hour index (6 PM → 8 AM): sunset → night → dawn */
+const SKY = [['#4A2E58','#E58A5A'],['#2C2445','#8A4E5E'],['#1C1D36','#3D3049'],['#121628','#1E2238'],['#0F1424','#1A2033'],['#0E1322','#181E31'],['#0D1220','#171C2F'],['#0D1220','#171C2F'],['#0D1220','#171C2F'],['#0E1424','#1A2134'],['#121A30','#252D47'],['#1A2645','#3A3A5A'],['#2C3E6A','#7C6888'],['#4F78A8','#E5A276'],['#7EA6CC','#F0CDA2']].map(p => p.map(hex));
+function rngS(s) { return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const city = (() => { const r = rngS(19), near = [], far = [], wins = [];
+  for (let x = 20; x < 132;) { const w = 4 + (r() * 7 | 0), h = 10 + (r() * 18 | 0); far.push({ x, w, h }); x += w; }
+  for (let x = 22; x < 126;) { let w = 5 + (r() * 6 | 0), h = 14 + (r() * 26 | 0), k = r() < .25 ? 'step' : 'flat';
+    if (x > 58 && x < 68 && !near.some(b => b.k === 'spire')) { w = 10; h = 52; k = 'spire'; }
+    if (x > 94 && x < 104 && !near.some(b => b.k === 'crown')) { w = 9; h = 42; k = 'crown'; }
+    near.push({ x, w, h, k }); x += w + (r() < .3 ? 1 : 0); }
+  near.forEach(b => { for (let y = BASE - b.h + 4; y < BASE - 2; y += 3) for (let x = b.x + 1; x < b.x + b.w - 1; x += 2) wins.push({ x, y, seed: r() }); });
+  return { near, far, wins }; })();
+const stars = (() => { const r = rngS(5), a = []; for (let i = 0; i < 40; i++) a.push({ x: r() * W | 0, y: (r() * 50 | 0) + 2, t: r() }); return a; })();
+let tick = 0, disp = NOW_I, puffs = [];
+function interp(arr, f) { const i = Math.max(0, Math.min(N - 1, Math.floor(f))), j = Math.min(N - 1, i + 1), t = f - i; return arr[i].map((v, k) => mixc(v, arr[j][k], t)); }
+function val(fn, f) { const i = Math.max(0, Math.min(N - 1, Math.floor(f))), j = Math.min(N - 1, i + 1), t = f - i; return fn(hours[i]) * (1 - t) + fn(hours[j]) * t; }
+function line(c, x0, y0, x1, y1) { x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1); const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx + dy; for (;;) { c.fillRect(x0, y0, 1, 1); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; } } }
+function disc(c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * .6) c.fillRect(cx + x, cy + y, 1, 1); }
+
+function drawScene(c, f, still) {
+  const [top, bot] = interp(SKY, f);
+  const gas = val(x => x.mix.gas, f), wind = val(x => x.mix.wind, f), inten = val(x => x.intensity, f);
+  const night = Math.max(0, 1 - Math.abs(f - 7.5) / 6.5) ; // 0 dusk/dawn → 1 deep night
+  // sky: 6 flat bands, no dither (calm background)
+  const BANDS = 6, bh = Math.ceil(BASE / BANDS);
+  for (let k = 0; k < BANDS; k++) { c.fillStyle = rgb(mixc(top, bot, Math.pow(k / (BANDS - 1), 1.6))); c.fillRect(0, k * bh, W, bh); }
+  // light dithered seam between bands (texture without noise)
+  for (let k = 1; k < BANDS; k++) { c.fillStyle = rgb(mixc(top, bot, Math.pow((k - 1) / (BANDS - 1), 1.6))); const y0 = k * bh; for (let x = 0; x < W; x += 2) c.fillRect(x + (k & 1), y0, 1, 1); }
+  // stars: 20, a handful twinkle slowly
+  if (night > .45) { stars.slice(0, 20).forEach((s, i) => { const tw = i % 5 === 0 && !still ? (Math.sin(tick / 9 + i) + 1) / 2 : 1; c.fillStyle = `rgba(236,232,227,${((night - .45) * .8 * (.4 + .6 * tw)).toFixed(3)})`; c.fillRect(s.x, s.y, 1, 1); }); }
+  // moon arcs across the night; sun at the ends
+  if (f < 1.2) { c.fillStyle = '#F6B45F'; disc(c, 140, Math.round(60 + f * 18), 6); }
+  else if (f > 12.4) { c.fillStyle = '#F7C77A'; disc(c, 18, Math.round(70 - (f - 12.4) * 16), 6); }
+  else { const p = (f - 1.2) / 11.2, mx = Math.round(140 - p * 110), my = Math.round(42 - Math.sin(p * Math.PI) * 14); c.fillStyle = '#E9E4D6'; disc(c, mx, my, 5); c.fillStyle = rgb(top); disc(c, mx + 3, my - 2, 4); }
+  // far skyline
+  c.fillStyle = rgb(mixc(hex('#2E3540'), bot, .55)); city.far.forEach(b => c.fillRect(b.x, BASE - b.h, b.w, b.h));
+  // peaker / gas stacks (Queens waterfront)
+  [[5, 34], [11, 30], [17, 26]].forEach(([x, h]) => { for (let y = BASE - h; y < BASE; y++) { c.fillStyle = ((y - (BASE - h)) >> 2) & 1 ? '#B9B4AE' : '#C2410C'; c.fillRect(x, y, 3, 1); } c.fillStyle = '#08080A'; c.fillRect(x - 1, BASE - 4, 5, 4); });
+  // near skyline
+  c.fillStyle = '#08080A';
+  city.near.forEach(b => { const y0 = BASE - b.h;
+    if (b.k === 'spire') { c.fillRect(b.x, y0 + 8, b.w, b.h - 8); c.fillRect(b.x + 2, y0 + 3, b.w - 4, 6); c.fillRect(b.x + 4, y0 - 2, 2, 6); c.fillRect(b.x + 4, y0 - 10, 1, 8); }
+    else if (b.k === 'crown') { c.fillRect(b.x, y0 + 6, b.w, b.h - 6); for (let s = 0; s < 4; s++) c.fillRect(b.x + 1 + s, y0 + 6 - s * 2, b.w - 2 - s * 2, 2); c.fillRect(b.x + 4, y0 - 6, 1, 6); }
+    else if (b.k === 'step') { c.fillRect(b.x, y0 + 4, b.w, b.h - 4); c.fillRect(b.x + 1, y0, b.w - 2, 5); }
+    else c.fillRect(b.x, y0, b.w, b.h); });
+  // lit windows = demand (more gas → more lights on)
+  const lit = Math.max(.06, Math.min(.6, (gas - 34) / 40));
+  c.fillStyle = '#FBCB97'; city.wins.forEach(w => { const flick = still ? 0 : (((tick >> 2) + w.seed * 997) | 0) % 401 === 0 ? .15 : 0; if (w.seed < lit + flick) c.fillRect(w.x, w.y, 1, 1); });
+  // water: calm base, slow sparse shimmer, window reflections
+  c.fillStyle = '#0E1A22'; c.fillRect(0, BASE, W, H - BASE);
+  c.fillStyle = '#16303C'; c.fillRect(0, BASE, W, 1);
+  c.fillStyle = '#1E3C4A';
+  for (let y = BASE + 3; y < H; y += 4) for (let x = 0; x < W; x++) if ((x + (tick >> 4) * ((y >> 2) & 1 ? 1 : -1) + y * 7) % 19 === 0) c.fillRect(x, y, 2, 1);
+  c.fillStyle = '#7A6447';
+  city.wins.forEach(w => { if (w.seed < lit && w.seed > lit * .4) { const ry = BASE + ((BASE - w.y) >> 2) + 2; if (ry < H - 1 && ((w.x + (tick >> 3)) % 5)) c.fillRect(w.x, ry, 1, 1); } });
+  // offshore wind, spin speed = wind share
+  const spin = wind * .016;
+  [[136, 24], [147, 28], [156, 22]].forEach(([x, h], i) => { c.fillStyle = '#CFCAC4'; c.fillRect(x, BASE - h, 1, h + 3); const a0 = tick * spin + i * 1.3; for (let k = 0; k < 3; k++) { const a = a0 + k * 2.094; line(c, x, BASE - h, x + Math.cos(a) * 7, BASE - h + Math.sin(a) * 7); } c.fillStyle = '#ff5a4a'; if ((tick >> 4) % 2) c.fillRect(x, BASE - h - 1, 1, 1); });
+  // smoke from stacks scales with gas share
+  if (!still) {
+    const rate = Math.max(0, (gas - 38) / 22);
+    [[6, 34], [12, 30], [18, 26]].forEach(([x, h], i) => { if (Math.random() < rate * (i === 2 ? .5 : .8)) puffs.push({ x, y: BASE - h - 1, r: 1, l: 0, vx: .22 + Math.random() * .15 }); });
+    puffs.forEach(p => { p.l++; p.y -= .22; p.x += p.vx; if (p.l % 18 === 0 && p.r < 4) p.r++; });
+    puffs = puffs.filter(p => p.l < 150 && p.x < W + 4);
+  }
+  puffs.forEach(p => { c.fillStyle = rgb(mixc(hex('#7A685A'), top, Math.min(.85, p.l / 160))); for (let y = -p.r; y <= p.r; y++) for (let x = -p.r; x <= p.r; x++) if (x * x + y * y <= p.r * p.r) c.fillRect(Math.round(p.x) + x, Math.round(p.y) + y, 1, 1); });
+  // haze: one soft flat band low on the skyline, stronger when dirtier
+  const dens = Math.max(0, (inten - 200) / 160);
+  if (dens > 0) {
+    c.fillStyle = `rgba(122,104,90,${(dens * .35).toFixed(3)})`; c.fillRect(0, BASE - 34, W, 34);
+    c.fillStyle = `rgba(122,104,90,${(dens * .2).toFixed(3)})`; c.fillRect(0, BASE - 50, W, 16);
+    // soft dithered top edge that drifts slowly
+    c.fillStyle = `rgba(122,104,90,${(dens * .3).toFixed(3)})`; const off = tick >> 3;
+    for (let y = BASE - 54; y < BASE - 50; y++) for (let x = 0; x < W; x++) if (BAYER[y & 3][(x + off) & 3] < .4) c.fillRect(x, y, 1, 1);
+  }
+}
+
+let lastT = 0;
+function loop(t) {
+  if (t - lastT > 50) { lastT = t; tick++; disp += (S.sel - disp) * .22; if (Math.abs(S.sel - disp) < .01) disp = S.sel; drawScene(ctx, disp, false); }
+  requestAnimationFrame(loop);
+}
+
+/* ============ BOOT ============ */
+document.getElementById('dateChip').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+renderTrack(); renderBoard(); renderTonight(); renderWall(false);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeThumb);
+if (reduced) { drawScene(ctx, S.sel, true); const _sel = select; }
+requestAnimationFrame(loop);
+</script>

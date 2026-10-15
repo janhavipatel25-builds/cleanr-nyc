@@ -1,0 +1,39 @@
+/* Design tokens: copied exactly from cleanr-prototype.html (see docs/design-spec.md).
+   Single dark "night" theme. State colours (calm/busy/rush) go on state elements only. */
+:root {
+  /* surfaces */
+  --bg: #121113;
+  --grid: rgba(255, 255, 255, 0.04);
+  --card: #19181a;
+  --surface: #222124;
+  --border: #2e2c30;
+  /* text */
+  --fg: #ece8e3;
+  --muted: #9a958f;
+  --faint: #6e6a66;
+  /* action */
+  --primary: #e78a53;
+  --primary-ink: #121113;
+  /* grid state */
+  --calm: #7fb0b0;
+  --busy: #f2b57a;
+  --rush: #e5574b;
+  /* time / LED accent */
+  --led: #ffb547;
+  --led-dim: #2b2420;
+  --board: #0b0a0a;
+  --board-line: #2a2622;
+  /* sources ("Other renewables" uses the solar token: decided 2026-10-15) */
+  --src-nuclear: #a08bd6;
+  --src-hydro: #4fa3ae;
+  --src-wind: #8cc3e6;
+  --src-otherRenewables: #f2b632;
+  --src-gas: #9a928b;
+  /* fonts: Doto is ONLY for times */
+  --display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --body: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --dot: 'Doto', 'JetBrains Mono', ui-monospace, monospace;
+  --r: 14px;
+  color-scheme: dark;
+}
