@@ -1,7 +1,7 @@
 # Progress
 
 ## Current phase
-**Step 4 done. Checkpoint 2: Janhavi tries it on her phone. Then step 5 (Ship).**
+**Step 5 in progress: release to GitHub Pages (Janhavi approved push, Pages, release PR, v1.0.0 tag).**
 **Deadline: V1 live by the evening of 2026-10-15.** Full plan: [docs/plan.md](docs/plan.md).
 
 ## Plan steps
@@ -28,11 +28,24 @@
 - 2026-10-15: **Step 4 done.** Ported the prototype: skyline + scrubber, both lenses, info tooltip, .ics calendar,
   share sheet with 1080×1920 Stories image. Fixed: moon/tag overlap, reduced motion, desktop tooltip, 320px layout.
   43 frontend tests + 35/35 click-through checks.
+- 2026-10-15: Step 5 prep: CI + hourly deploy workflows, README with screenshots, fresh-clone dress rehearsal.
+  Final review by a fresh reviewer: 0 critical, 3 important (+3 re-graded) → all fixed test-first.
+  Now: 73 backend tests, 55 frontend tests, 42/42 click-through checks.
 
 ## Next up
-1. Checkpoint 2: Janhavi tries it on her phone (local Wi-Fi link).
-2. Commit step 4.
-3. Step 5: ship (GitHub Actions, Pages, README, release).
+1. Push `develop`, turn on Pages, release PR `develop` → `main`, tag `v1.0.0`.
+2. Checkpoint 3: the live URL on Janhavi's phone.
+3. Fast follows (see "Deferred" below).
+
+## Deferred (minor review findings, for after V1)
+- Off-peak window duplicated in the app (move it into `tonight.json`).
+- Actions cache key per run (key by day, prune old files).
+- Yesterday's NYISO file could be cached before it's complete.
+- Contract could cross-check night start/end vs hours.
+- Clearer exit code for unexpected pipeline errors.
+- Selected hour after a refresh that switches nights.
+- Fold long .ics lines; remove unused `nyParts`.
+- **Every ~50 days:** push a commit or re-enable "Deploy" in Actions (GitHub pauses schedules after 60 quiet days).
 
 ## Open questions
 - None right now.
@@ -53,3 +66,5 @@
   - Built step 2 test-first. First live run of the pipeline on real NYISO data.
   - Built step 3 test-first. Checked the real app at phone width with a screenshot script.
   - Built step 4. A click-through script found 3 real bugs (desktop tooltip, desktop Stories, 320px overflow); all fixed.
+  - Step 5: final review found an honesty slip after ~4 AM ("tonight's calmest" for a Busy hour), a focus bug,
+    and the 60-day schedule pause. All fixed and covered by tests.

@@ -72,7 +72,7 @@ intensity (g CO₂/kWh) = Σ (MW of category × emission factor) / Σ (MW of all
 ```
 
 ### Emission factors: EPA eGRID (decided 2026-10-15)
-- Source: **EPA eGRID, latest edition**, New York subregions (NYCW, NYLI, NYUP).
+- Source: **EPA eGRID2023 (rev 2, June 2025)**, New York **state-level** rates (sheet ST23), since NYISO's mix is statewide.
 - eGRID gives lb CO₂/MWh. Convert: **g/kWh = lb/MWh × 0.4536**.
 - Mapping:
   - Natural Gas, Dual Fuel → New York **gas** output emission rate.

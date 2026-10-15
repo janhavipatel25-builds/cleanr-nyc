@@ -1,6 +1,6 @@
 # Frontend
 
-The **React + Vite + Tailwind** app will live here. Nothing is installed yet.
+The **React + Vite + Tailwind** app.
 
 - **Vite:** the dev server and build tool (fast reloads, outputs static files).
 - **React:** UI components.
@@ -9,7 +9,7 @@ The **React + Vite + Tailwind** app will live here. Nothing is installed yet.
 It reads one static file, `tonight.json`, made by the backend pipeline.
 No server and no database.
 
-## Planned structure (sprint steps 3–4, see `docs/plan.md`)
+## Structure
 ```
 frontend/
 ├── index.html

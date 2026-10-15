@@ -1,18 +1,18 @@
 # Backend
 
-The **Python + pandas data pipeline** will live here. Nothing is installed yet.
+The **Python + pandas data pipeline**.
 
 It's a **pipeline, not a server**: a script that runs on a schedule, does its work, writes a file, and exits.
 
 1. **Fetch** NYISO public CSVs (real-time fuel mix + load forecast).
 2. **Compute** hourly carbon intensity from the fuel mix, using cited emission factors.
-3. **Build** the 6 PM → 8 AM hour model: label each hour, pick the best hour and the calm stretch.
+3. **Build** the 6 PM → 8 AM hour model: actual + forecast hours, labelled Calm / Busy / Rush (thirds of tonight).
 4. **Write** one static `tonight.json` for the frontend.
 
-A **GitHub Actions** cron job will run it (e.g. hourly) and publish the JSON.
+The **Deploy** GitHub Actions workflow runs it every hour and publishes the result with the app.
 See `docs/data-notes.md` for sources, method and open questions.
 
-## Planned structure (plan steps 1–2, see `docs/plan.md`)
+## Structure
 ```
 backend/
 ├── requirements.txt
