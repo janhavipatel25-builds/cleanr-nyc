@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { dateChip, hourLabel, hourShort, nyParts, rangeLabel, timeOfDay } from './time.js'
+import { dateChip, hourLabel, hourShort, nyParts, rangeLabel, timeOfDay, updatedLabel } from './time.js'
 
 test('the machine running these tests is NOT on New York time', () => {
   expect(Intl.DateTimeFormat().resolvedOptions().timeZone).not.toBe('America/New_York')
@@ -28,4 +28,10 @@ test('date chip and time of day are in New York', () => {
   const lateLondon = new Date('2026-10-16T02:30:00Z') // 10:30 PM Oct 15 in New York
   expect(dateChip(lateLondon)).toBe('Thu, Oct 15')
   expect(timeOfDay('2026-10-15T21:35:00-04:00')).toBe('9:35 PM')
+})
+
+test('"updated" shows the date when it is not today in New York (review fix)', () => {
+  const now = Date.parse('2026-10-15T21:35:00-04:00')
+  expect(updatedLabel('2026-10-15T19:10:00-04:00', now)).toBe('7:10 PM')
+  expect(updatedLabel('2026-08-20T07:10:00-04:00', now)).toBe('Aug 20, 7:10 AM')
 })

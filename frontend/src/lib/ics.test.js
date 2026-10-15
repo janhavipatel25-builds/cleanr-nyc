@@ -29,3 +29,11 @@ test('says what and why, without promising a finish time', () => {
 test('file name includes the night', () => {
   expect(calendarFileName(hour)).toBe('cleanr-nyc-charge-2026-10-16.ics')
 })
+
+test('late in the night it says "left tonight", and only forecasts say "forecast" (review fix)', () => {
+  const live = makeIcs({ ...hour, source: 'actual' }, { now: 0, tonightsCalmest: false })
+  expect(live).toContain('the calmest off-peak hour left tonight')
+  expect(live).not.toContain('forecast')
+  expect(makeIcs({ ...hour, source: 'forecast' }, { now: 0, tonightsCalmest: true })).toContain('tonight’s calmest hour')
+  expect(makeIcs({ ...hour, source: 'forecast' }, { now: 0, tonightsCalmest: true })).toContain('forecast')
+})

@@ -34,9 +34,10 @@ export function bestHour(hours, now) {
   return best
 }
 
-/** Consecutive Calm, off-peak, not-over hours around the best hour. { start, end } with end exclusive. */
+/** Consecutive Calm, off-peak, not-over hours around the best hour. { start, end } with end exclusive.
+ *  Null when the best hour left isn't Calm itself (late in the night): no "calm stretch" to show. */
 export function calmStretch(hours, best, now) {
-  if (best === null || best === undefined) return null
+  if (best === null || best === undefined || hours[best].label !== 'calm') return null
   const ok = (i) => i >= 0 && i < hours.length && isOffpeak(hours[i]) && !isOver(hours[i], now) && hours[i].label === 'calm'
   let s = best
   let e = best + 1
@@ -45,9 +46,17 @@ export function calmStretch(hours, best, now) {
   return { start: s, end: e }
 }
 
-/** True if the data is more than 3 hours old, or the night it describes has ended. */
+/** True if the best hour is still tonight's calmest off-peak hour (no calmer one has already passed).
+ *  Late in the night it may only be "the calmest off-peak hour left", and the copy must say so. */
+export function isTonightsCalmest(hours, best) {
+  if (best === null || best === undefined) return false
+  return !hours.some((h) => isOffpeak(h) && h.intensity < hours[best].intensity)
+}
+
+/** True if the run or the NYISO data behind it is more than 3 hours old, or the night it describes has ended. */
 export function isStale(doc, now) {
-  return now - Date.parse(doc.generatedAt) > STALE_AFTER || now >= Date.parse(doc.night.end) + HOUR
+  const age = now - Math.min(Date.parse(doc.generatedAt), Date.parse(doc.meta?.dataThrough ?? doc.generatedAt))
+  return age > STALE_AFTER || now >= Date.parse(doc.night.end) + HOUR
 }
 
 /** Where the scrubber starts: the Live hour during the night, otherwise the best hour. */

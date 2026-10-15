@@ -1,6 +1,6 @@
 // Phone-sized screenshots with your installed Chrome (no browser download).
 // Usage: node scripts/screenshot.mjs <url> <out.png> [width=390] [height=844]
-//          [--reduced-motion] [--click=<selector>] [--time=<ISO>] [--data=<tonight.json path>]
+//          [--viewport] [--reduced-motion] [--click=<selector>] [--time=<ISO>] [--data=<tonight.json path>]
 import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 
@@ -24,6 +24,6 @@ await page.goto(url, { waitUntil: 'networkidle' })
 for (const f of flags.filter((f) => f.startsWith('--click='))) await page.click(f.slice(8))
 await page.waitForTimeout(600)
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
-await page.screenshot({ path: out, fullPage: true })
+await page.screenshot({ path: out, fullPage: !flags.includes('--viewport') })
 await browser.close()
 console.log(JSON.stringify({ out, horizontalOverflowPx: overflow, errors }))

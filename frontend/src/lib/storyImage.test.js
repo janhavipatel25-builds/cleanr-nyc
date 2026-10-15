@@ -14,3 +14,7 @@ test('the card says the hour and stays honest (calmest, not cleanest)', () => {
 test('file name', () => {
   expect(storyFileName({ time: '2026-10-16T03:00:00-04:00' })).toBe('cleanr-nyc-story-2026-10-16.png')
 })
+
+test('late in the night the card says "Calmest hour left tonight" (review fix)', () => {
+  expect(storyText({ hourOfDay: 6 }, 'Oct 15', { tonightsCalmest: false }).line).toBe('Calmest hour left tonight')
+})

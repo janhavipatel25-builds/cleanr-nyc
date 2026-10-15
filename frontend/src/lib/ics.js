@@ -1,4 +1,5 @@
 // "Add to calendar": a standard .ics file, made in the browser. No server, no account.
+import { calmestPhrase } from './copy.js'
 import { hourLabel } from './time.js'
 
 const HOUR = 60 * 60 * 1000
@@ -7,7 +8,7 @@ const HOUR = 60 * 60 * 1000
 const stamp = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 
 /** A 1-hour event at `hour` (an item from tonight.json `hours`). */
-export function makeIcs(hour, { now = Date.now() } = {}) {
+export function makeIcs(hour, { now = Date.now(), tonightsCalmest = true } = {}) {
   const start = Date.parse(hour.time)
   const label = hourLabel(hour.hourOfDay)
   return [
@@ -21,7 +22,7 @@ export function makeIcs(hour, { now = Date.now() } = {}) {
     `DTSTART:${stamp(start)}`,
     `DTEND:${stamp(start + HOUR)}`,
     `SUMMARY:Charge the car · calmest at ${label}`,
-    `DESCRIPTION:${label} is tonight's calmest hour on New York's grid: fewer gas plants running\\, inside Con Ed off-peak (12–8 AM). It's a forecast and may shift.`,
+    `DESCRIPTION:${label} is ${calmestPhrase(tonightsCalmest)} on New York's grid: fewer gas plants running\\, inside Con Ed off-peak (12–8 AM).${hour.source === 'forecast' ? " It's a forecast and may shift." : ''}`,
     'END:VEVENT',
     'END:VCALENDAR',
     '',
@@ -33,8 +34,8 @@ export function calendarFileName(hour) {
 }
 
 /** Hand the file to the browser (download / "open in Calendar" on phones). */
-export function downloadIcs(hour) {
-  const blob = new Blob([makeIcs(hour)], { type: 'text/calendar;charset=utf-8' })
+export function downloadIcs(hour, tonightsCalmest) {
+  const blob = new Blob([makeIcs(hour, { tonightsCalmest })], { type: 'text/calendar;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = Object.assign(document.createElement('a'), { href: url, download: calendarFileName(hour) })
   document.body.append(a)

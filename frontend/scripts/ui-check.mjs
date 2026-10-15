@@ -93,6 +93,40 @@ try {
     await page.close()
   }
 
+  // 8b. share sheet focus doesn't jump when the app re-renders (minute tick)
+  {
+    const { page } = await open(browser)
+    await page.getByRole('button', { name: 'Share', exact: true }).click()
+    await page.getByRole('button', { name: 'Share link' }).focus()
+    await page.clock.runFor(61_000)
+    check('share sheet: focus stays put after a minute', await page.evaluate(() => document.activeElement?.textContent) === 'Share link')
+    await page.close()
+  }
+
+  // 8c. late in the night (6:30 AM): honest copy once the calmest hour has passed
+  {
+    const fresh = { ...sample, generatedAt: '2026-10-15T06:20:00-04:00', meta: { ...sample.meta, dataThrough: '2026-10-15T06:15:00-04:00' } }
+    const { page, errors } = await open(browser, { time: '2026-10-15T06:30:00-04:00', data: fresh })
+    await page.getByRole('button', { name: 'Why this time' }).click()
+    const tip = await page.getByRole('tooltip').textContent()
+    check('6:30 AM: says "left tonight"', tip.includes('calmest off-peak hour left tonight'), tip)
+    check('6:30 AM: never calls it "tonight’s calmest"', !tip.includes('tonight’s calmest hour'), tip)
+    check('6:30 AM: no calm-stretch outline on a Busy hour', (await page.locator('.win').count()) === 0)
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'Share', exact: true }).click()
+    check('6:30 AM: share card says "Calmest hour left tonight"', await page.getByText('Calmest hour left tonight').isVisible())
+    check('no console errors (6:30 AM)', errors.length === 0, errors.join(' | '))
+    await page.close()
+  }
+
+  // 8d. weeks-old data (hourly job paused): "Data delayed" shows the date
+  {
+    const { page } = await open(browser, { time: '2026-12-01T21:00:00-05:00' })
+    const note = await page.getByRole('status').first().textContent()
+    check('old data: "Data delayed" shows the date', /Data delayed · last updated Oct 14, 9:35 PM/.test(note), note)
+    await page.close()
+  }
+
   // 9. reduced motion: the scene doesn't move
   {
     const { page, errors } = await open(browser, { reduced: true })

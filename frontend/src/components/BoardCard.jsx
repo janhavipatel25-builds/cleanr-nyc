@@ -1,10 +1,11 @@
 // The card under the skyline. Tonight: the answer + actions. The grid: what's powering New York.
 import { useEffect, useRef, useState } from 'react'
 import { cleanShare, statusOf } from '../lib/model.js'
+import { calmestPhrase } from '../lib/copy.js'
 import { hourLabel, rangeLabel } from '../lib/time.js'
 import PixelIcon from './PixelIcon.jsx'
 
-function InfoTip({ hours, best, stretch }) {
+function InfoTip({ hours, best, stretch, tonightsCalmest }) {
   const [open, setOpen] = useState(false)
   const wrap = useRef(null)
   const hovering = useRef(false) // mouse hover already opened it: a click shouldn't close it again
@@ -18,9 +19,9 @@ function InfoTip({ hours, best, stretch }) {
   }, [open])
 
   const b = hours[best]
-  const startH = hours[stretch.start].hourOfDay
-  const endH = (hours[stretch.end - 1].hourOfDay + 1) % 24
-  const single = stretch.end - stretch.start === 1
+  const single = !stretch || stretch.end - stretch.start === 1
+  const startH = stretch && hours[stretch.start].hourOfDay
+  const endH = stretch && (hours[stretch.end - 1].hourOfDay + 1) % 24
   return (
     <div ref={wrap} style={{ display: 'contents' }}>
       <button className="info" type="button" aria-expanded={open} aria-controls="infoTip" aria-label="Why this time"
@@ -31,7 +32,9 @@ function InfoTip({ hours, best, stretch }) {
       </button>
       {open && (
         <div className="tip" id="infoTip" role="tooltip">
-          <span><b>{hourLabel(b.hourOfDay)} is tonight’s calmest hour</b>: compared with the rest of tonight, the fewest gas plants are running.</span>
+          {tonightsCalmest
+            ? <span><b>{hourLabel(b.hourOfDay)} is {calmestPhrase(true)}</b>: compared with the rest of tonight, the fewest gas plants are running.</span>
+            : <span><b>{hourLabel(b.hourOfDay)} is {calmestPhrase(false)}.</b> Tonight’s calmest hours are already over.</span>}
           <span>
             {single
               ? 'It’s inside Con Ed’s cheapest hours (12–8 AM).'
@@ -44,7 +47,7 @@ function InfoTip({ hours, best, stretch }) {
   )
 }
 
-export default function BoardCard({ lens, hours, best, stretch, selected, base, now, onCalendar, onShare }) {
+export default function BoardCard({ lens, hours, best, stretch, tonightsCalmest, selected, base, now, onCalendar, onShare }) {
   if (lens === 'grid') {
     const h = hours[selected]
     const isNow = statusOf(h, now) === 'live'
@@ -71,7 +74,7 @@ export default function BoardCard({ lens, hours, best, stretch, selected, base, 
             ? <span className="none">Off-peak is over. Check back this evening.</span>
             : <span className="time">{hourLabel(hours[best].hourOfDay)}</span>}
         </span>
-        {best !== null && <InfoTip hours={hours} best={best} stretch={stretch} />}
+        {best !== null && <InfoTip hours={hours} best={best} stretch={stretch} tonightsCalmest={tonightsCalmest} />}
       </div>
       {best !== null && (
         <div className="btns">

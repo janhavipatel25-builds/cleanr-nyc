@@ -1,11 +1,11 @@
-import { timeOfDay } from '../lib/time.js'
+import { updatedLabel } from '../lib/time.js'
 
 /** Loading, error and "data delayed" states. Calm, factual, never alarming. */
-export default function StatusNote({ state, doc }) {
+export default function StatusNote({ state, doc, now }) {
   const text = {
     loading: 'Loading tonight’s grid…',
     error: 'Can’t reach tonight’s data right now. Try again in a few minutes.',
-    stale: doc && `Data delayed · last updated ${timeOfDay(doc.generatedAt)}. Times may be out of date.`,
+    stale: doc && `Data delayed · last updated ${updatedLabel(doc.meta?.dataThrough ?? doc.generatedAt, now)}. Times may be out of date.`,
   }[state]
   if (!text) return null
   return (

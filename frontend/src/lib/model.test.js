@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
-import { bestHour, calmStretch, cleanShare, initialSelection, isStale, liveIndex, statusOf } from './model.js'
+import { bestHour, calmStretch, cleanShare, initialSelection, isStale, isTonightsCalmest, liveIndex, statusOf } from './model.js'
 
 // Replay of 2026-10-14 at 9:35 PM: 6–9 PM actual, 10 PM onward forecast. Best hour 3 AM.
 const sample = JSON.parse(readFileSync(new URL('../../../backend/samples/tonight.sample.json', import.meta.url)))
@@ -97,4 +97,30 @@ describe('initialSelection', () => {
 
 test('cleanShare is everything that is not gas', () => {
   expect(cleanShare({ nuclear: 24, hydro: 20, wind: 4, otherRenewables: 2, gas: 50 })).toBe(50)
+})
+
+describe('after the calmest hour has passed (review fix)', () => {
+  const sixThirty = at('2026-10-15T06:30:00-04:00')
+  const fourThirty = at('2026-10-15T04:30:00-04:00')
+
+  test('no calm stretch when the best hour left is not Calm', () => {
+    const best = bestHour(sample.hours, sixThirty)
+    expect(sample.hours[best].label).not.toBe('calm')
+    expect(calmStretch(sample.hours, best, sixThirty)).toBeNull()
+  })
+
+  test('isTonightsCalmest is true before the calmest hour has passed', () => {
+    expect(isTonightsCalmest(sample.hours, bestHour(sample.hours, NOW))).toBe(true)
+  })
+
+  test('isTonightsCalmest is false once a calmer hour is over', () => {
+    expect(isTonightsCalmest(sample.hours, bestHour(sample.hours, fourThirty))).toBe(false) // 3 AM (186) beat 4 AM (187)
+  })
+})
+
+describe('isStale also checks how old the NYISO data is (review fix)', () => {
+  test('fresh run but 4-hour-old data is stale', () => {
+    const doc = { ...sample, generatedAt: '2026-10-14T21:35:00-04:00', meta: { ...sample.meta, dataThrough: '2026-10-14T17:30:00-04:00' } }
+    expect(isStale(doc, NOW)).toBe(true)
+  })
 })

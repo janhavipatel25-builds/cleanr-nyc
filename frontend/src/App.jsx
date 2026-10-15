@@ -13,7 +13,7 @@ import Scene from './components/scene/Scene.jsx'
 import TonightView from './components/tonight/TonightView.jsx'
 import { downloadIcs } from './lib/ics.js'
 import { loadTonight } from './lib/loadTonight.js'
-import { bestHour, calmStretch, initialSelection, isStale, liveIndex } from './lib/model.js'
+import { bestHour, calmStretch, initialSelection, isStale, isTonightsCalmest, liveIndex } from './lib/model.js'
 import { useReducedMotion } from './lib/useReducedMotion.js'
 
 const MINUTE = 60_000
@@ -50,11 +50,13 @@ export default function App() {
   const [sharing, setSharing] = useState(false)
   const [message, setMessage] = useState('')
   const clearMessage = useCallback(() => setMessage(''), [])
+  const closeShare = useCallback(() => setSharing(false), [])
 
   const doc = result?.ok ? result.data : null
   const hours = useMemo(() => doc?.hours ?? [], [doc])
   const best = useMemo(() => (doc ? bestHour(hours, now) : null), [doc, hours, now])
   const stretch = useMemo(() => calmStretch(hours, best, now), [hours, best, now])
+  const tonightsCalmest = isTonightsCalmest(hours, best)
   const selected = doc ? Math.min(picked ?? initialSelection(hours, now), hours.length - 1) : 0
 
   // "Now" for comparisons: the Live hour if it has real data, else the latest actual hour.
@@ -69,7 +71,7 @@ export default function App() {
     document.getElementById('scene')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
   }
   const addToCalendar = () => {
-    downloadIcs(hours[best])
+    downloadIcs(hours[best], tonightsCalmest)
     setMessage('Calendar invite downloaded.')
   }
 
@@ -77,19 +79,19 @@ export default function App() {
     <main className="mx-auto grid max-w-[440px] grid-cols-[minmax(0,1fr)]">
       <AppBar now={now} />
       <LensSwitch lens={lens} onChange={setLens} />
-      <StatusNote state={state} doc={doc} />
+      <StatusNote state={state} doc={doc} now={now} />
       {doc && (
         <>
           <Scene hours={hours} selected={selected} onSelect={setPicked} stretch={stretch} now={now} lens={lens} reduced={reduced} />
-          <BoardCard lens={lens} hours={hours} best={best} stretch={stretch} selected={selected} base={base} now={now}
+          <BoardCard lens={lens} hours={hours} best={best} stretch={stretch} tonightsCalmest={tonightsCalmest} selected={selected} base={base} now={now}
             onCalendar={addToCalendar} onShare={() => setSharing(true)} />
           {lens === 'tonight'
-            ? <TonightView hours={hours} best={best} stretch={stretch} selected={selected} onSelect={setPicked} now={now} base={base} onSeeGrid={seeGrid} />
-            : <GridView hours={hours} selected={selected} best={best} base={base} now={now} />}
+            ? <TonightView hours={hours} best={best} stretch={stretch} selected={selected} onSelect={setPicked} now={now} base={base} tonightsCalmest={tonightsCalmest} onSeeGrid={seeGrid} />
+            : <GridView hours={hours} selected={selected} best={best} base={base} now={now} tonightsCalmest={tonightsCalmest} />}
         </>
       )}
-      <Footer doc={doc} />
-      {sharing && best !== null && <ShareSheet hours={hours} best={best} onClose={() => setSharing(false)} toast={setMessage} />}
+      <Footer doc={doc} now={now} />
+      {sharing && best !== null && <ShareSheet hours={hours} best={best} tonightsCalmest={tonightsCalmest} onClose={closeShare} toast={setMessage} />}
       <Toast message={message} onDone={clearMessage} />
     </main>
   )

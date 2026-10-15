@@ -4,8 +4,9 @@ import { hourLabel } from './time.js'
 
 export const STORY = { width: 1080, height: 1920 }
 
-export function storyText(hour, dateText) {
-  return { kicker: 'Charged at', time: hourLabel(hour.hourOfDay), line: 'Tonight’s calmest hour', brand: 'CLEANR / NYC', date: dateText }
+export function storyText(hour, dateText, { tonightsCalmest = true } = {}) {
+  const line = tonightsCalmest ? 'Tonight’s calmest hour' : 'Calmest hour left tonight'
+  return { kicker: 'Charged at', time: hourLabel(hour.hourOfDay), line, brand: 'CLEANR / NYC', date: dateText }
 }
 
 export function storyFileName(hour) {
@@ -15,8 +16,8 @@ export function storyFileName(hour) {
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
 /** Draw the story card. Resolves to a PNG Blob. */
-export async function renderStory(hours, bestIndex, dateText) {
-  const text = storyText(hours[bestIndex], dateText)
+export async function renderStory(hours, bestIndex, dateText, tonightsCalmest = true) {
+  const text = storyText(hours[bestIndex], dateText, { tonightsCalmest })
   await Promise.all([
     document.fonts.load('900 200px Doto'),
     document.fonts.load('600 48px "Space Grotesk"'),

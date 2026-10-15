@@ -51,3 +51,10 @@ export function shortDate(date = new Date()) {
 export function timeOfDay(iso) {
   return new Date(iso).toLocaleTimeString('en-US', { timeZone: TIMEZONE, hour: 'numeric', minute: '2-digit' })
 }
+
+/** "7:10 PM" if it's today in New York, else "Aug 20, 7:10 AM" (so old data is obvious). */
+export function updatedLabel(iso, now = Date.now()) {
+  const day = (d) => d.toLocaleDateString('en-US', { timeZone: TIMEZONE, year: 'numeric', month: 'numeric', day: 'numeric' })
+  const sameDay = day(new Date(iso)) === day(new Date(now))
+  return sameDay ? timeOfDay(iso) : `${shortDate(new Date(iso))}, ${timeOfDay(iso)}`
+}

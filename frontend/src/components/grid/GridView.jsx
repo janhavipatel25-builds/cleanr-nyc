@@ -1,10 +1,9 @@
 // The grid lens: what's powering New York at the selected hour, and why hours differ.
-import { cleanShare, statusOf } from '../../lib/model.js'
+import { gasHint } from '../../lib/copy.js'
+import { cleanShare, liveIndex, statusOf } from '../../lib/model.js'
 import { hourLabel, hourShort } from '../../lib/time.js'
 import { SOURCES, STATUS, WORD } from '../../lib/words.js'
 import PixelIcon from '../PixelIcon.jsx'
-
-const points = (n) => `${n} ${n === 1 ? 'point' : 'points'}`
 
 function Lede({ h, isNow, base }) {
   const cl = cleanShare(isNow ? base.mix : h.mix)
@@ -38,7 +37,7 @@ function Bar({ mix, label, t }) {
   )
 }
 
-export default function GridView({ hours, selected, best, base, now }) {
+export default function GridView({ hours, selected, best, base, now, tonightsCalmest }) {
   const h = hours[selected]
   const status = statusOf(h, now)
   const isNow = status === 'live'
@@ -83,10 +82,7 @@ export default function GridView({ hours, selected, best, base, now }) {
             <Bar mix={b.mix} label={hourLabel(b.hourOfDay)} t={hourShort(b.hourOfDay)} />
             {!isNow && selected !== best && <Bar mix={h.mix} label={hourLabel(h.hourOfDay)} t={hourShort(h.hourOfDay)} />}
             <p className="hint">
-              Clean sources on the left, gas on the right. Tonight’s calmest hour ({hourLabel(b.hourOfDay)}){' '}
-              {diff > 0 ? `runs on ${points(diff)} less gas than now.`
-                : diff === 0 ? 'runs on about the same gas as now.'
-                  : `runs on ${points(-diff)} more gas than right now. Daytime demand can be lower than you’d think.`}
+              {gasHint({ diff, bestLabel: hourLabel(b.hourOfDay), tonightsCalmest, daytime: liveIndex(hours, now) < 0 })}
             </p>
           </div>
         </>

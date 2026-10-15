@@ -1,4 +1,5 @@
 // Tonight lens: hour by hour from now, why the best hour, coming soon.
+import { calmestPhrase } from '../../lib/copy.js'
 import { liveIndex, statusOf } from '../../lib/model.js'
 import { hourLabel, hourShort } from '../../lib/time.js'
 import { SHORT, STATUS, WORD } from '../../lib/words.js'
@@ -18,7 +19,7 @@ function HourRows({ hours, best, stretch, selected, onSelect, now }) {
         // 1–10 dots, relative to tonight: the calmest hour has 1, the busiest has 10
         const on = hi > lo ? 1 + Math.round((9 * (h.intensity - lo)) / (hi - lo)) : 1
         const cls = ['row', status === 'live' && 'now', inStretch(i) && 'best', i === selected && 'sel'].filter(Boolean).join(' ')
-        const spoken = `${hourLabel(h.hourOfDay)}: ${WORD[h.label]}, ${STATUS[status].toLowerCase()}${i === best ? ', calmest hour' : inStretch(i) ? ', in the calm stretch' : ''}`
+        const spoken = `${hourLabel(h.hourOfDay)}: ${WORD[h.label]}, ${STATUS[status].toLowerCase()}${i === best ? ', best time to charge' : inStretch(i) ? ', in the calm stretch' : ''}`
         return (
           <li key={h.time}>
             <button type="button" className={cls} style={{ '--c': `var(--${h.label})` }} aria-pressed={i === selected} aria-label={spoken} onClick={() => onSelect(i)}>
@@ -39,7 +40,7 @@ function HourRows({ hours, best, stretch, selected, onSelect, now }) {
   )
 }
 
-function WhyCard({ hours, best, base, onSeeGrid }) {
+function WhyCard({ hours, best, base, tonightsCalmest, onSeeGrid }) {
   if (best === null) return null
   const b = hours[best]
   const label = hourLabel(b.hourOfDay)
@@ -54,8 +55,7 @@ function WhyCard({ hours, best, base, onSeeGrid }) {
         </p>
       ) : (
         <p>
-          Of tonight’s off-peak hours, {label} has the smallest share of gas: <b>{b.mix.gas}%</b> of the mix.
-          Fewer gas plants running, and it’s off-peak pricing too.
+          {label} is {calmestPhrase(tonightsCalmest)}, with gas at <b>{b.mix.gas}%</b> of the mix. It’s off-peak pricing too.
         </p>
       )}
       <button className="link" type="button" onClick={onSeeGrid}>See the grid at {label} →</button>
@@ -63,12 +63,12 @@ function WhyCard({ hours, best, base, onSeeGrid }) {
   )
 }
 
-export default function TonightView({ hours, best, stretch, selected, onSelect, now, base, onSeeGrid }) {
+export default function TonightView({ hours, best, stretch, selected, onSelect, now, base, tonightsCalmest, onSeeGrid }) {
   return (
     <section className="view enter" id="view-tonight" role="tabpanel" aria-labelledby="tab-tonight">
       <div className="sec-h"><h2>Tonight, hour by hour</h2><span className="mono">Tap an hour</span></div>
       <HourRows hours={hours} best={best} stretch={stretch} selected={selected} onSelect={onSelect} now={now} />
-      <WhyCard hours={hours} best={best} base={base} onSeeGrid={onSeeGrid} />
+      <WhyCard hours={hours} best={best} base={base} tonightsCalmest={tonightsCalmest} onSeeGrid={onSeeGrid} />
       <div className="sec-h"><h2>Coming soon</h2></div>
       <div className="soon">
         {[['laundry', 'Laundry'], ['dish', 'Dishwasher'], ['phone', 'Devices']].map(([icon, name]) => (
