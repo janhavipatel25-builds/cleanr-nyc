@@ -86,9 +86,11 @@ Money/rate plans · environmental justice / peaker story · laundry, dishwasher,
 fast-charger mode · accounts · notifications · charger finding.
 
 ## Commands
-_To be filled in once they exist._
-- Frontend dev server: `TBD`
-- Frontend build: `TBD`
-- Frontend tests: `TBD`
-- Backend pipeline run: `TBD`
-- Backend tests: `TBD`
+Backend (run from `backend/`):
+- One-time setup: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
+- Tests: `.venv/bin/pytest`
+- Build tonight's file: `.venv/bin/python -m cleanr --out ../frontend/public/tonight.json --cache .cache`
+- Replay a past moment: add `--now 2026-10-14T21:35:00-04:00`
+- Forecast backtest: `.venv/bin/python scripts/backtest.py --nights 21`
+
+Frontend: _to be filled in at step 3._

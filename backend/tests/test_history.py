@@ -34,6 +34,11 @@ def test_history_joins_mix_load_and_intensity_across_days():
     assert first["intensity"] == pytest.approx(G_PER_KWH["gas"] * 1000 / 4000)
 
 
+def test_history_remembers_the_latest_reading_time():
+    df = history.load(date(2026, 10, 1), date(2026, 10, 2), fuel_mix=fake_fuel, actual_load=fake_load)
+    assert df.attrs["dataThrough"] == "2026-10-02T00:05:00-04:00"
+
+
 def test_a_missing_day_is_skipped_not_fatal():
     def fuel(day):
         if day == date(2026, 10, 2):

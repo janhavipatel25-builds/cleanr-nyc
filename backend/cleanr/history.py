@@ -28,7 +28,8 @@ def load(first: date, last: date, *, fuel_mix=fetch.fuel_mix, actual_load=fetch.
     if not fuel_days:
         raise fetch.DataMissing(f"No NYISO fuel mix between {first} and {last}")
 
-    by_category = mix.hourly_by_category(pd.concat(fuel_days, ignore_index=True))
+    readings = pd.concat(fuel_days, ignore_index=True)
+    by_category = mix.hourly_by_category(readings)
     groups = mix.to_groups(by_category)
     out = groups.assign(
         gasFactor=intensity.gas_factor(by_category),
@@ -38,4 +39,5 @@ def load(first: date, last: date, *, fuel_mix=fetch.fuel_mix, actual_load=fetch.
         out["load"] = mix.hourly_load(pd.concat(load_days, ignore_index=True)).reindex(out.index)
     else:
         out["load"] = float("nan")
+    out.attrs["dataThrough"] = readings["time"].max().isoformat()
     return out

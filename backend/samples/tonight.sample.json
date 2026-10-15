@@ -1,0 +1,252 @@
+{
+ "version": 1,
+ "generatedAt": "2026-10-14T21:35:00-04:00",
+ "city": "nyc",
+ "timezone": "America/New_York",
+ "night": {
+  "start": "2026-10-14T18:00:00-04:00",
+  "end": "2026-10-15T08:00:00-04:00"
+ },
+ "now": {
+  "time": "2026-10-14T21:00:00-04:00",
+  "intensity": 229,
+  "mix": {
+   "nuclear": 20,
+   "hydro": 19,
+   "wind": 5,
+   "otherRenewables": 2,
+   "gas": 54
+  }
+ },
+ "hours": [
+  {
+   "time": "2026-10-14T18:00:00-04:00",
+   "hourOfDay": 18,
+   "intensity": 227,
+   "label": "rush",
+   "mix": {
+    "nuclear": 19,
+    "hydro": 20,
+    "wind": 6,
+    "otherRenewables": 1,
+    "gas": 54
+   },
+   "source": "actual"
+  },
+  {
+   "time": "2026-10-14T19:00:00-04:00",
+   "hourOfDay": 19,
+   "intensity": 233,
+   "label": "rush",
+   "mix": {
+    "nuclear": 19,
+    "hydro": 20,
+    "wind": 5,
+    "otherRenewables": 1,
+    "gas": 55
+   },
+   "source": "actual"
+  },
+  {
+   "time": "2026-10-14T20:00:00-04:00",
+   "hourOfDay": 20,
+   "intensity": 232,
+   "label": "rush",
+   "mix": {
+    "nuclear": 19,
+    "hydro": 20,
+    "wind": 5,
+    "otherRenewables": 1,
+    "gas": 55
+   },
+   "source": "actual"
+  },
+  {
+   "time": "2026-10-14T21:00:00-04:00",
+   "hourOfDay": 21,
+   "intensity": 229,
+   "label": "rush",
+   "mix": {
+    "nuclear": 20,
+    "hydro": 19,
+    "wind": 5,
+    "otherRenewables": 2,
+    "gas": 54
+   },
+   "source": "actual"
+  },
+  {
+   "time": "2026-10-14T22:00:00-04:00",
+   "hourOfDay": 22,
+   "intensity": 220,
+   "label": "rush",
+   "mix": {
+    "nuclear": 23,
+    "hydro": 17,
+    "wind": 6,
+    "otherRenewables": 2,
+    "gas": 52
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-14T23:00:00-04:00",
+   "hourOfDay": 23,
+   "intensity": 212,
+   "label": "busy",
+   "mix": {
+    "nuclear": 26,
+    "hydro": 16,
+    "wind": 6,
+    "otherRenewables": 2,
+    "gas": 50
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T00:00:00-04:00",
+   "hourOfDay": 0,
+   "intensity": 204,
+   "label": "busy",
+   "mix": {
+    "nuclear": 27,
+    "hydro": 16,
+    "wind": 7,
+    "otherRenewables": 2,
+    "gas": 48
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T01:00:00-04:00",
+   "hourOfDay": 1,
+   "intensity": 196,
+   "label": "calm",
+   "mix": {
+    "nuclear": 28,
+    "hydro": 17,
+    "wind": 7,
+    "otherRenewables": 2,
+    "gas": 46
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T02:00:00-04:00",
+   "hourOfDay": 2,
+   "intensity": 190,
+   "label": "calm",
+   "mix": {
+    "nuclear": 29,
+    "hydro": 17,
+    "wind": 7,
+    "otherRenewables": 2,
+    "gas": 45
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T03:00:00-04:00",
+   "hourOfDay": 3,
+   "intensity": 186,
+   "label": "calm",
+   "mix": {
+    "nuclear": 30,
+    "hydro": 17,
+    "wind": 7,
+    "otherRenewables": 2,
+    "gas": 44
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T04:00:00-04:00",
+   "hourOfDay": 4,
+   "intensity": 187,
+   "label": "calm",
+   "mix": {
+    "nuclear": 30,
+    "hydro": 17,
+    "wind": 7,
+    "otherRenewables": 2,
+    "gas": 44
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T05:00:00-04:00",
+   "hourOfDay": 5,
+   "intensity": 194,
+   "label": "calm",
+   "mix": {
+    "nuclear": 28,
+    "hydro": 17,
+    "wind": 7,
+    "otherRenewables": 2,
+    "gas": 46
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T06:00:00-04:00",
+   "hourOfDay": 6,
+   "intensity": 205,
+   "label": "busy",
+   "mix": {
+    "nuclear": 25,
+    "hydro": 19,
+    "wind": 6,
+    "otherRenewables": 2,
+    "gas": 48
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T07:00:00-04:00",
+   "hourOfDay": 7,
+   "intensity": 210,
+   "label": "busy",
+   "mix": {
+    "nuclear": 23,
+    "hydro": 19,
+    "wind": 6,
+    "otherRenewables": 2,
+    "gas": 50
+   },
+   "source": "forecast"
+  },
+  {
+   "time": "2026-10-15T08:00:00-04:00",
+   "hourOfDay": 8,
+   "intensity": 205,
+   "label": "busy",
+   "mix": {
+    "nuclear": 24,
+    "hydro": 19,
+    "wind": 6,
+    "otherRenewables": 3,
+    "gas": 48
+   },
+   "source": "forecast"
+  }
+ ],
+ "meta": {
+  "dataThrough": "2026-10-14T21:35:00-04:00",
+  "thresholds": {
+   "p33": 200.9,
+   "p67": 214.8
+  },
+  "forecastMethod": "load-v1",
+  "emissionFactors": {
+   "source": "EPA eGRID2023 (rev 2), New York state output emission rates, sheet ST23",
+   "gas": 422.8,
+   "oil": 508.5
+  },
+  "sources": [
+   "https://mis.nyiso.com/public/csv/rtfuelmix/",
+   "https://mis.nyiso.com/public/csv/isolf/",
+   "https://mis.nyiso.com/public/csv/pal/",
+   "https://www.epa.gov/egrid"
+  ]
+ }
+}

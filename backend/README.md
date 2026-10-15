@@ -24,7 +24,10 @@ backend/
 │   ├── intensity.py          ← hourly mix → g CO₂/kWh
 │   ├── forecast.py           ← predict the hours that haven't happened yet
 │   ├── tonight.py            ← tonight's hours + labels → the tonight.json content
-│   └── __main__.py           ← `python -m cleanr --out <path>`: build, check, write
+│   ├── history.py            ← recent actual hours (mix, load, intensity)
+│   ├── labels.py             ← Calm / Busy / Rush by thirds
+│   ├── contract.py           ← checks a file against docs/tonight.schema.json
+│   ├── cli.py, __main__.py   ← `python -m cleanr --out <path>`: build, check, write
 ├── scripts/backtest.py       ← test the forecast on past nights
 ├── samples/tonight.sample.json
 └── tests/                    ← pytest, with small saved CSVs (no network)
@@ -32,4 +35,11 @@ backend/
 The output must follow `docs/tonight.schema.json`. The best hour and calm stretch are worked out in the app.
 
 ## Commands
-_To be filled in once the pipeline exists._
+Run from `backend/`:
+```
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time setup
+.venv/bin/pytest                                                      # run the tests
+.venv/bin/python -m cleanr --out ../frontend/public/tonight.json --cache .cache   # build tonight's file
+.venv/bin/python scripts/backtest.py --nights 21                      # how good is the forecast?
+```
+Exit codes: `0` written · `1` broke the contract (nothing written) · `2` NYISO data missing (nothing written).
