@@ -4,6 +4,11 @@
 Port it faithfully. It runs on mock data and is never shipped as the app.
 This doc summarises it so we can talk about it without reading the code.
 
+> **V1 changes from the prototype** (decided 2026-10-15, see `plan.md` step 4):
+> no wall, no borough picker, no "Post to the wall"; no Solar row or Solar scene label;
+> source list = Nuclear · Hydro · Wind · Other renewables · Gas; Calm / Busy / Rush are relative to tonight.
+> Sections below marked *(not in V1)* stay documented for the fast follow.
+
 ## Information architecture
 **One app, two "lenses" on the same scene and the same hours.**
 
@@ -52,22 +57,23 @@ The background stays calm. Only the meaningful elements move.
 - "Tonight, hour by hour": rows from **Now → 8 AM**. Each row: time (Doto) · 10-dot intensity bar ·
   label · tag (Live / Best). Tapping a row moves the scrubber. Calm-stretch rows are highlighted.
 - "Why 3 AM?" card, with a link that opens **The grid** at that hour.
-- "Tonight on the wall": anonymous, templated posts with borough ("Someone in Brooklyn charged at 3 AM.").
+- *(not in V1)* "Tonight on the wall": anonymous, templated posts with borough ("Someone in Brooklyn charged at 3 AM.").
 - "Coming soon" chips: Laundry, Dishwasher, Devices.
 
 ### The grid lens
 - One-line lede ("Right now, 48% of New York's power is clean.").
 - **100-dot mix**: one dot per %, coloured by source, plus a Clean % / Gas % split.
-- **Source list:** Nuclear, Hydro, Wind, Solar, Gas, each with a short note, % and change vs now.
+- **Source list:** Nuclear, Hydro, Wind, Other renewables, Gas, each with a short note, % and change vs now.
+  (Prototype has Solar instead of Other renewables; Solar is parked.)
 - **Now vs calmest hour**: stacked bars (plus the selected hour if different).
-- "Why hours differ": **Steady** (nuclear and hydro) · **Weather** (wind and solar) · **Flex** (gas follows demand).
-- Source labels float over the scene in this lens (Gas, Wind, Upstate: nuclear + hydro, Solar).
-- Statewide data footnote.
+- "Why hours differ": **Steady** (nuclear and hydro) · **Weather** (wind comes and goes) · **Flex** (gas follows demand).
+- Source labels float over the scene in this lens (Gas, Wind, Upstate: nuclear + hydro). No Solar label in V1.
+- Footnotes: statewide data; "Gas includes dual-fuel and oil plants."
 
 ### Share sheet
 - A 9:16 ticket-style card: mini skyline at the best hour · "Charged at **3 AM**" · "Tonight's calmest hour" · date.
-- Borough picker (Brooklyn, Bronx, Manhattan, Queens, Staten Island).
-- "Post to the wall anonymously" (primary) and "Save for Instagram Stories" (ghost).
+- *(not in V1)* Borough picker (Brooklyn, Bronx, Manhattan, Queens, Staten Island) and "Post to the wall anonymously".
+- "Save for Instagram Stories". In V1 it's the main action (1080×1920 PNG; native share sheet on phones that support it).
 - Modal: focus moves in, Esc / backdrop closes, focus returns.
 
 ## Visual system
@@ -130,6 +136,7 @@ The prototype also uses a few supporting values (`--led-dim #2B2420`, `--board #
   The prototype only shows "Live" and "Best" tags. This needs a design pass.
 - **Copy:** the grid lens heading says "Now vs the best hour" and a code comment says "cleanest".
   Use "calmest hour" in the port.
-- **Solar:** the prototype shows Solar as its own source, but NYISO's feed has no Solar category
-  (see `data-notes.md`). The source list may need to change.
+- **Solar:** NYISO's feed has no Solar category. Solar is parked; the row becomes "Other renewables".
+- **Relative labels:** the info tooltip must say Calm means calm compared with the rest of tonight.
+- **Before 6 PM:** every hour is Forecast and there's no "Now" row. This state isn't in the prototype.
 - **Calendar and Stories buttons** only show toasts in the prototype. They need real implementations.

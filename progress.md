@@ -1,39 +1,33 @@
 # Progress
 
 ## Current phase
-**Phase 0: Project template.** Docs and an empty folder skeleton are in place. No app code yet.
+**Plan locked. Next: sprint step 1 (Data).**
+**Deadline: V1 live by the evening of 2026-10-15.** Full plan: [docs/plan.md](docs/plan.md).
 
-**Deadline: V1 live by the evening of 2026-10-15.** One sprint, not multiple sessions.
-
-## Sprint plan (2026-10-14 → 2026-10-15 evening)
-1. **Data:** fetch real NYISO data, compute hourly intensity, tune thresholds, pick the forecast method.
-2. **Pipeline:** Python script → `tonight.json`, small tests, hourly GitHub Action.
-3. **Frontend:** Vite + React + Tailwind with the design tokens, reading `tonight.json`.
-4. **Port the prototype:** skyline canvas, scrubber, both lenses, share sheet, .ics download.
-5. **Ship:** deploy, README with screenshots, merge `develop` → `main`.
+## Sprint steps
+- [ ] 1. Data: fetch NYISO, intensity, forecast fit, backtest
+- [ ] 2. Pipeline: `tonight.json` + tests
+- [ ] 3. Frontend scaffold
+- [ ] 4. Port the prototype
+- [ ] 5. Ship: workflows, GitHub Pages, README with screenshots
 
 ## Done
 - 2026-10-14: Created the GitHub repo with `main` and `develop` branches.
 - 2026-10-14: Added `cleanr-prototype.html` (approved prototype, mock data) to the repo root.
 - 2026-10-14: Created the starter template: `CLAUDE.md`, `progress.md`, `README.md`, `.gitignore`,
   `docs/` (brief, design spec, data notes, decisions), `frontend/README.md`, `backend/README.md`.
-- 2026-10-14: Checked the NYISO CSV feeds. All three URLs work over https.
-  There's no separate Solar category in the fuel mix (see `docs/data-notes.md`).
+- 2026-10-14: Checked the NYISO CSV feeds. There's no separate Solar category.
+- 2026-10-15: Answered the open questions (see `docs/decisions.md`). Wrote `docs/plan.md`.
+- 2026-10-15: Confirmed the repo is public, and that NYISO daily files go back ~10 days (older ones in monthly zips).
 
 ## Next up
-1. Jahnavi answers the open questions below.
-2. Start sprint step 1 (data).
+1. Janhavi confirms the two assumptions below.
+2. Start step 1: set up the Python backend and fetch real data.
 
 ## Open questions
-- **Forecast approach:** estimate gas share from the NYISO load forecast, or use the typical hourly pattern from recent days?
-- **Wall storage:** drop from V1, keep local-only, or add a tiny hosted store later?
-- **Hosting:** GitHub Pages or Vercel?
-- **Emission factors:** which source (e.g. EPA eGRID) and which value per fuel category?
-- **Label thresholds:** keep Calm < 200 / Busy 200–249 / Rush ≥ 250 g/kWh, or switch to percentiles once we see real data?
-- **Solar in the UI:** the feed has no Solar category (it's likely inside "Other Renewables").
-  How should the 5-source list (Nuclear, Hydro, Wind, Solar, Gas) map onto the real categories?
-- **Dual Fuel / Other Fossil:** show these as "Gas", or as their own group?
-- **Name spelling** in the docs: "Jahnavi" or "Janhavi"?
+- **Hosting:** GitHub Pages assumed. OK?
+- **"Other renewables" row:** with Solar parked, the mix still has an "Other Renewables" category (~a few %).
+  Show it as its own row, using the existing `--src-solar` colour token? (It must go somewhere for the mix to add up to 100.)
 
 ## Session log
 - **2026-10-14**
@@ -41,3 +35,6 @@
   - Created the project template (docs + empty skeleton).
   - Verified the NYISO feed URLs, columns and fuel categories.
   - Deadline set: V1 live by the evening of 2026-10-15. Committing straight to `develop` for this sprint.
+- **2026-10-15**
+  - Locked decisions: forecast (a), EPA eGRID, relative labels, Solar parked, fossil under Gas, wall is a fast follow.
+  - Wrote the full V1 build plan (`docs/plan.md`) and updated all docs to match.

@@ -40,3 +40,6 @@ Thumbs.db
 
 # --- Logs ---
 *.log
+
+# --- Generated data ---
+frontend/public/tonight.json

@@ -28,9 +28,9 @@ through the night. It leads with an action ("Best time to charge: 3 AM"), not wi
 ### Core logic
 - The night runs **6 PM → 8 AM**, one row per hour.
 - Each hour gets a **carbon intensity** (g CO₂/kWh), computed from the fuel mix.
-- Each hour gets a label: **Calm / Busy / Rush hour**.
-  - Placeholder thresholds (from the prototype): Calm < 200, Busy 200–249, Rush ≥ 250 g/kWh.
-  - To be tuned against real data. Percentile-based thresholds are an option.
+- Each hour gets a label: **Calm / Busy / Rush hour**, **relative to tonight's own hours**:
+  the calmest third is Calm, the middle third Busy, the top third Rush hour. No fixed numbers.
+  (The prototype's fixed thresholds, Calm < 200 / Busy 200–249 / Rush ≥ 250 g/kWh, are not used.)
 - **Best time to charge** = the **lowest-intensity future hour inside Con Ed's off-peak window (12–8 AM)**.
 - **Calm stretch** = the consecutive Calm hours around the best hour, still inside off-peak.
   Shown as an outline on the scrubber and a highlight on the hour rows.
@@ -47,6 +47,8 @@ through the night. It leads with an action ("Best time to charge: 3 AM"), not wi
 - Tone: warm, clear, a little playful. **Never guilt-tripping.**
 
 ## Parked for later (do not build)
+- **"Tonight on the wall"**: a fast follow after V1. Storage decided later.
+- **Solar** as its own source. NYISO's feed has no separate Solar category.
 - Money / rate plans (TOU vs SmartCharge).
 - The environmental justice / peaker-plant story.
 - Laundry, dishwasher, device charging. Shown only as "Coming soon" chips.

@@ -9,12 +9,12 @@ The **React + Vite + Tailwind** app will live here. Nothing is installed yet.
 It reads one static file, `tonight.json`, made by the backend pipeline.
 No server and no database.
 
-## Planned structure (to confirm in Phase 3)
+## Planned structure (sprint steps 3–4, see `docs/plan.md`)
 ```
 frontend/
 ├── index.html
 ├── public/
-│   └── mock/tonight.json      ← mock data until the pipeline is live
+│   └── tonight.json           ← written by the pipeline (generated, not committed)
 └── src/
     ├── main.jsx               ← entry point
     ├── App.jsx                ← holds UI state: { lens, selectedHour }
@@ -25,7 +25,7 @@ frontend/
         ├── LensSwitch.jsx
         ├── scene/             ← SkylineCanvas (ported from the prototype), Scrubber
         ├── BoardCard.jsx
-        ├── tonight/           ← HourRows, WhyCard, Wall, ComingSoon
+        ├── tonight/           ← HourRows, WhyCard, ComingSoon
         ├── grid/              ← MixDots, SourceList, CompareBars, WhyHoursDiffer
         ├── ShareSheet.jsx
         └── PixelIcon.jsx

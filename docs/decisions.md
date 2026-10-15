@@ -22,3 +22,10 @@ Newest at the bottom. Format: **date · decision · why**.
 | 2026-10-14 | Single dark "night" theme; pixel art only; Doto only for times; state colours only on state elements. | A consistent, recognisable visual system. |
 | 2026-10-14 | Git: `main` = released, `develop` = integration, short-lived branches + PRs into `develop`. | Learn a real workflow; keep `main` always deployable. |
 | 2026-10-14 | Ship V1 by the evening of 2026-10-15 as one sprint. Commit straight to `develop` during the sprint. | Owner's deadline. Branches + PRs slow a one-day sprint down. |
+| 2026-10-15 | Forecast: predict gas from NYISO's load forecast (option a). Backtest against the typical-pattern baseline (option b). | Gas follows demand, and NYISO's load forecast already includes the weather. The backtest keeps us honest. |
+| 2026-10-15 | Emission factors from EPA eGRID (New York gas and oil rates). | Official, citable, New York-specific. |
+| 2026-10-15 | Calm / Busy / Rush are relative to tonight's own hours (thirds). Replaces the fixed placeholder thresholds. | Labels come from what NYISO's data says about tonight, not an arbitrary number. |
+| 2026-10-15 | Solar parked for V1. | NYISO's fuel mix has no separate Solar category. |
+| 2026-10-15 | Dual Fuel and Other Fossil Fuels counted under Gas, with a footnote. | Keeps the source list simple. All three burn fossil fuel. |
+| 2026-10-15 | "Tonight on the wall" moved to a fast follow; storage decided later. | Needs shared storage. Not needed to ship V1. |
+| 2026-10-15 | Installing packages and tools is allowed for the sprint. | Needed to build in one day. |

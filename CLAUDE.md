@@ -8,6 +8,7 @@
 - It's a portfolio piece. The owner must be able to explain every part of it.
 
 ## Docs (read before working on that area)
+- [docs/plan.md](docs/plan.md): **the V1 build plan** (steps, checkpoints, definition of done)
 - [docs/product-brief.md](docs/product-brief.md): what, who, goals, product rules, out of scope
 - [docs/design-spec.md](docs/design-spec.md): IA, components, tokens, fonts, motion, scene encodings
 - [docs/data-notes.md](docs/data-notes.md): NYISO sources, intensity method, forecast, open data questions
@@ -20,19 +21,19 @@
 - **End of every session:** update `progress.md` (Done, Next up, Open questions, Session log).
 - Log any new decision in `docs/decisions.md`.
 
-## How to work with the owner (Jahnavi)
-- Jahnavi is a product designer/PM, new to coding and GitHub. Teach as you go.
+## How to work with the owner (Janhavi)
+- Janhavi is a product designer/PM, new to coding and GitHub. Teach as you go.
 - Short, clear bullets. One step at a time. **Always end with the single next step.**
 - Explain the *why* in one line when introducing a new concept, tool or command.
 - No walls of text. No jargon without a one-line explanation.
-- When Jahnavi needs to run a command, put it in a code block and say what it does.
+- When Janhavi needs to run a command, put it in a code block and say what it does.
 - If something is unclear or contradictory, ask. At most 3 questions at a time.
 - **Ask before you:** push, open a PR, install packages, add dependencies, delete files,
   change git history, or touch anything outside this repo.
-- **Jahnavi makes the commits.** Prefer giving the git commands to run over running them silently.
+- **Janhavi makes the commits.** Prefer giving the git commands to run over running them silently.
 
 ## Git workflow
-- **V1 sprint (deadline 2026-10-15 evening):** commit straight to `develop` when Jahnavi asks.
+- **V1 sprint (deadline 2026-10-15 evening):** commit straight to `develop` when Janhavi asks.
   Feature branches + PRs below are the normal workflow after the sprint.
 - `main` = live / released. `develop` = integration.
 - All work happens on a short-lived branch off `develop`:
@@ -53,6 +54,7 @@
 
 ## Honesty and copy rules
 - Say **"calmest hour"**, never "cleanest hour".
+- Calm / Busy / Rush are **relative to tonight's hours**. Copy must not imply a fixed standard.
 - Don't overclaim individual impact: "fewer gas plants running", not "you saved X grams".
 - Future hours = **Forecast**, past hours = **Actual**, now = **Live**.
 - NYISO data is **statewide**. Title the data view "Powering New York" and note that NYC runs on the state grid.
@@ -61,6 +63,7 @@
 - Tone: warm, clear, a little playful. Never guilt-tripping.
 
 ## Out of scope for V1 (don't build)
+The wall (fast follow) · Solar as its own source ·
 Money/rate plans · environmental justice / peaker story · laundry, dishwasher, devices
 (only "Coming soon" chips) · other cities (keep code city-agnostic where cheap) ·
 fast-charger mode · accounts · notifications · charger finding.
