@@ -93,4 +93,9 @@ Backend (run from `backend/`):
 - Replay a past moment: add `--now 2026-10-14T21:35:00-04:00`
 - Forecast backtest: `.venv/bin/python scripts/backtest.py --nights 21`
 
-Frontend: _to be filled in at step 3._
+Frontend (run from `frontend/`):
+- One-time setup: `npm install`
+- Dev server: `npm run dev` → http://localhost:5173/cleanr-nyc/ (needs `public/tonight.json`: run the backend command above)
+- Tests: `npm test` (runs on London time on purpose, to prove NYC-time handling)
+- Build: `npm run build` → `dist/`
+- Phone screenshot: `node scripts/screenshot.mjs <url> <out.png> [width] [height]`

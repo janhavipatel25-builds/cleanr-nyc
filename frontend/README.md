@@ -33,4 +33,11 @@ frontend/
 ```
 
 ## Commands
-_To be filled in once the app exists._
+Run from `frontend/`:
+```
+npm install          # one-time setup
+npm run dev          # http://localhost:5173/cleanr-nyc/  (needs public/tonight.json, see backend/README.md)
+npm test             # Vitest, on London time on purpose (proves New York time handling)
+npm run build        # production build → dist/
+node scripts/screenshot.mjs http://localhost:5173/cleanr-nyc/ shot.png 390 844   # phone-size screenshot
+```
