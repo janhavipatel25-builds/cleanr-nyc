@@ -8,17 +8,17 @@
 .scene { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); background: #0f1424; touch-action: pan-y; }
 .scene canvas { display: block; width: 100%; aspect-ratio: 160 / 112; image-rendering: pixelated; }
 .scrub { position: absolute; inset: 0 0 auto 0; padding: 10px 12px 0; }
-.scrub-track { position: relative; height: 28px; border-radius: 9px; background: rgba(8,8,10,.62); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(3px); cursor: grab; touch-action: none; display: grid; grid-template-columns: repeat(var(--n), 1fr); align-items: stretch; padding: 6px; gap: 3px; }
+.scrub-track { position: relative; height: 20px; border-radius: 8px; background: rgba(8,8,10,.62); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(3px); cursor: grab; touch-action: none; }
 .scrub-track:active { cursor: grabbing; }
-.tick { border-radius: 3px; background: var(--c); opacity: .75; }
-.tick.past { opacity: .3; }
+.scrub-bar { position: absolute; inset: 6px; border-radius: 3px; background: var(--grad); opacity: .8; overflow: hidden; pointer-events: none; }
+.scrub-past { position: absolute; inset: 0 auto 0 0; width: var(--past); background: rgba(8,8,10,.6); }
 .win { position: absolute; top: 3px; bottom: 3px; border: 1.5px solid var(--fg); border-radius: 5px; pointer-events: none; }
 .thumb { position: absolute; top: -2px; bottom: -2px; width: 3px; margin-left: -1.5px; background: var(--led); box-shadow: 0 0 8px rgba(255,181,71,.7); border-radius: 2px; pointer-events: none; transition: left .12s ease-out; }
-.thumb-tag { position: absolute; top: 48px; transform: translateX(-50%); background: rgba(11,10,10,.88); border: 1px solid var(--border); border-radius: 7px; padding: 4px 8px; font: 500 12px var(--body); color: var(--fg); white-space: nowrap; pointer-events: none; transition: left .12s ease-out; display: inline-flex; gap: 6px; align-items: baseline; }
+.thumb-tag { position: absolute; top: 40px; transform: translateX(-50%); background: rgba(11,10,10,.88); border: 1px solid var(--border); border-radius: 7px; padding: 4px 8px; font: 500 12px var(--body); color: var(--fg); white-space: nowrap; pointer-events: none; transition: left .12s ease-out; display: inline-flex; gap: 6px; align-items: baseline; }
 .thumb-tag .tm { font: 800 13px var(--dot); color: var(--led); letter-spacing: .04em; }
 .thumb-tag .st { font: 500 10px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .scrub-ends { display: flex; justify-content: space-between; padding: 3px 2px 0; font: 500 9.5px var(--mono); color: rgba(236,232,227,.6); letter-spacing: .06em; }
-.timeline { position: absolute; top: 50px; bottom: 0; width: 1px; margin-left: -.5px; background: repeating-linear-gradient(to bottom, rgba(255,181,71,.45) 0 3px, transparent 3px 7px); pointer-events: none; transition: left .12s ease-out; }
+.timeline { position: absolute; top: 42px; bottom: 0; width: 1px; margin-left: -.5px; background: repeating-linear-gradient(to bottom, rgba(255,181,71,.45) 0 3px, transparent 3px 7px); pointer-events: none; transition: left .12s ease-out; }
 .srclabels { position: absolute; inset: 0; pointer-events: none; }
 .srclabel { position: absolute; transform: translateY(-50%); background: rgba(8,8,10,.78); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; padding: 3px 6px; font: 500 10px var(--mono); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; display: inline-flex; gap: 5px; align-items: center; }
 .srclabel i { width: 7px; height: 7px; display: inline-block; background: var(--c); }
