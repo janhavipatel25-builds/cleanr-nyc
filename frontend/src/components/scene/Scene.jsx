@@ -62,7 +62,7 @@ function Scrubber({ hours, selected, onSelect, stretch, now, onX }) {
   }, [])
   useLayoutEffect(() => { if (tag.current) setTagW(tag.current.offsetWidth) }, [selected, status])
 
-  const colX = (i) => 6 + ((i + 0.5) * (width - 12 + 3)) / n - 1.5
+  const colX = (i) => 6 + ((i + 0.5) * (width - 12)) / n
   const x = colX(selected)
   useLayoutEffect(() => { onX(12 + x) }, [x, onX])
   const tagLeft = Math.min(Math.max(x, tagW / 2 - 6), width - tagW / 2 + 6)
@@ -78,7 +78,10 @@ function Scrubber({ hours, selected, onSelect, stretch, now, onX }) {
     if (e.key === 'Home') { e.preventDefault(); onSelect(0) }
     if (e.key === 'End') { e.preventDefault(); onSelect(n - 1) }
   }
-  const stepCss = `((100% - 12px + 3px) / ${n})`
+  const stepCss = `((100% - 12px) / ${n})`
+  // One smooth gradient: each hour's state colour sits at the middle of its slot.
+  const gradient = `linear-gradient(to right, ${hours.map((hr, i) => `var(--${hr.label}) ${(((i + 0.5) / n) * 100).toFixed(2)}%`).join(', ')})`
+  const pastShare = (hours.filter((hr) => isOver(hr, now)).length / n) * 100
   const timeText = status === 'live' ? 'NOW' : hourLabel(h.hourOfDay)
 
   return (
@@ -86,7 +89,6 @@ function Scrubber({ hours, selected, onSelect, stretch, now, onX }) {
       <div
         ref={track}
         className="scrub-track"
-        style={{ '--n': n }}
         role="slider"
         tabIndex={0}
         aria-label="Time of night"
@@ -100,13 +102,13 @@ function Scrubber({ hours, selected, onSelect, stretch, now, onX }) {
         onPointerUp={() => { dragging.current = false }}
         onPointerCancel={() => { dragging.current = false }}
       >
-        {hours.map((hr, i) => (
-          <span key={hr.time} className={`tick ${isOver(hr, now) ? 'past' : ''}`} style={{ '--c': `var(--${hr.label})` }} />
-        ))}
+        <span className="scrub-bar" style={{ '--grad': gradient }}>
+          <span className="scrub-past" style={{ '--past': `${pastShare}%` }} />
+        </span>
         {stretch && (
           <span className="win" style={{
             left: `calc(6px + ${stretch.start} * ${stepCss} - 3px)`,
-            width: `calc(${stretch.end - stretch.start} * ${stepCss} + 3px)`,
+            width: `calc(${stretch.end - stretch.start} * ${stepCss} + 6px)`,
           }} />
         )}
         <span className="thumb" style={{ left: `${x}px` }} />

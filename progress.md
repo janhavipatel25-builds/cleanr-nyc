@@ -1,7 +1,7 @@
 # Progress
 
 ## Current phase
-**Step 5 in progress: release to GitHub Pages (Janhavi approved push, Pages, release PR, v1.0.0 tag).**
+**V1 is live: https://janhavipatel25-builds.github.io/cleanr-nyc/ (tag `v1.0.0`). Waiting on Checkpoint 3 (Janhavi's phone).**
 **Deadline: V1 live by the evening of 2026-10-15.** Full plan: [docs/plan.md](docs/plan.md).
 
 ## Plan steps
@@ -9,7 +9,7 @@
 - [x] 2. The tonight model + contract
 - [x] 3. Frontend foundations
 - [x] 4. Port the prototype
-- [ ] 5. Ship
+- [x] 5. Ship
 
 ## Done
 - 2026-10-14: Created the GitHub repo with `main` and `develop` branches.
@@ -31,10 +31,12 @@
 - 2026-10-15: Step 5 prep: CI + hourly deploy workflows, README with screenshots, fresh-clone dress rehearsal.
   Final review by a fresh reviewer: 0 critical, 3 important (+3 re-graded) → all fixed test-first.
   Now: 73 backend tests, 55 frontend tests, 42/42 click-through checks.
+- 2026-10-15: **Step 5 done. V1 released.** Pushed `develop`, turned on GitHub Pages, CI green, release PR #2 merged
+  by Janhavi, Deploy green, live site verified, tagged `v1.0.0`.
 
 ## Next up
-1. Push `develop`, turn on Pages, release PR `develop` → `main`, tag `v1.0.0`.
-2. Checkpoint 3: the live URL on Janhavi's phone.
+1. Checkpoint 3: Janhavi opens the live URL on her phone.
+2. Check the hourly Deploy runs in the Actions tab tonight.
 3. Fast follows (see "Deferred" below).
 
 ## Deferred (minor review findings, for after V1)
@@ -68,3 +70,4 @@
   - Built step 4. A click-through script found 3 real bugs (desktop tooltip, desktop Stories, 320px overflow); all fixed.
   - Step 5: final review found an honesty slip after ~4 AM ("tonight's calmest" for a Busy hour), a focus bug,
     and the 60-day schedule pause. All fixed and covered by tests.
+  - Released: Janhavi merged PR #2 on GitHub. The site is live and refreshes every hour.
