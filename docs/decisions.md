@@ -39,3 +39,47 @@ Newest at the bottom. Format: **date · decision · why**.
 | 2026-10-15 | "Other renewables" row uses the `--src-solar` colour token. | Keeps the approved palette; no new colour. |
 | 2026-10-15 | Janhavi runs the commit commands at the end of each step. | Learning by doing, and the definition of done asks for it. |
 | 2026-10-15 | Build "Native": Claude builds each step in this session; one fresh review at the end. | Fastest and cheapest for a one-day deadline. |
+
+## Build rulings (V1 sprint, 2026-10-15)
+Calls made while building, each with why and what it costs if wrong. Copied from the build ledger.
+
+- plan uses "Step N / N.M" headings, not "### Task N"; task-start/task-brief scripts not used, ledger kept by hand — cost if wrong: none (format only).
+- no git worktree; work on develop directly — owner's instruction (sprint) — cost if wrong: messier history, low.
+- stop after each Step for the owner's step report + commit (owner instruction overrides "continuous execution") — cost: slower.
+- Claude does not commit; Janhavi runs the commit commands given at each step end — owner instruction.
+- plan said mix.hourly() + intensity.of(mix_row); split into mix.hourly_by_category/to_groups + intensity.gas_factor/of — gas group mixes gas+oil factors, so intensity must be weighted at category level — cost if wrong: none, internal API.
+- eGRID2023 rev2 state-level NY rates (ST23) used, not subregion — NYISO mix is statewide — cost if wrong: small factor difference.
+- added cleanr/history.py and cleanr/labels.py (not in plan file list) — backtest and pipeline both need them; one place each — cost if wrong: none.
+- added CITY.night_hours/is_offpeak to config — night/off-peak are city rules — cost: none.
+- added "hybrid" forecast variant to the backtest — honest comparison; kept for the README story — cost: ~10 lines.
+- ran 21 nights, not 7 — 7 nights flipped the order; 21 is fairer — cost: none.
+- shipped variant = "load" (option a) — lowest error 9.5 g/kWh, best-hour 15/21 — matches owner's choice.
+- Janhavi asked Claude to run the step 1 commits ("okay commit step 1") — owner's direct instruction — cost: none.
+- extra rules (mix sums to 100, hours 1h apart, valid times) live in cleanr/contract.py since JSON Schema can't express them — cost: none.
+- tonight.assemble() is pure (tested), tonight.build() fetches then assembles — testability — cost: none.
+- 8 AM switches to the next night (night_for) — night ends at the 8 AM row — cost: the 8 AM hour itself is never "Live".
+- actual data after `now` is ignored; dataThrough capped at now — honest replays — tests RED→GREEN.
+- CLI logic in cleanr/cli.py, __main__.py just calls it — testable without subprocess — cost: none.
+- hand-wrote the Vite app instead of `npm create vite` (frontend/ wasn't empty; avoids template clutter) — cost: none.
+- tests run with TZ=Europe/London always — proves NYC-time handling (Review Focus #1) — cost: none.
+- OFFPEAK duplicated in frontend/src/lib/model.js (mirrors backend config) — keeps the contract unchanged — cost if wrong: two places to edit for another city.
+- added frontend/scripts/screenshot.mjs + playwright-core (uses system Chrome) — headless Chrome can't go below ~500px; needed for real phone-width checks and README screenshots — cost: one dev dependency.
+- prototype CSS ported as plain CSS (src/styles/app.css) using the same tokens; Tailwind for app shell only — fastest faithful port — cost: two styling styles in one app.
+- haze follows tonight's relative intensity (prototype had fixed 200 g/kWh) — matches relative labels — cost: none.
+- scene maps 14–16 hours onto the prototype's 15-step sky (t = f·14/(N−1)) — DST nights — tested.
+- best row shows "Best" + status on two lines so every hour keeps its Forecast/Actual/Live label — cost: slightly taller best row.
+- Why-card/hint copy branches when "now" (daytime) has LESS gas than the best hour — never claim a drop that isn't there.
+- Stories → share sheet only on touch devices; download on computers — macOS Chrome can share, but download is expected — found by ui-check.
+- ticket footer "CLEANR / NYC" instead of prototype's "cleanr.nyc" (domain not owned).
+- "Powering New York at now", "Charged at 3 AM", date chip at midnight, Live by clock, 8 AM row, colour-only ticks — prototype/spec behaviour, kept — cost: none new.
+- shipping `load` despite `typical` 16/21 vs 15/21 best-hour hits — owner's choice, documented, within noise — cost: maybe slightly worse picks; revisit with more nights.
+- unknown new NYISO fuel category fails the run (fail closed) — better than a wrong file; "Data delayed" shows — cost: manual fix needed if NYISO adds a category.
+
+## Deferred minor review findings
+- OFFPEAK + "12–8 AM" duplicated in frontend (reviewer disagrees with 3.3 ruling) — move to tonight.json meta in a fast follow.
+- Actions cache key per run → ~24 entries/day; key by day + prune old files.
+- yesterday's daily file can be cached before complete (fetch.py cacheable=day<today) → use day < today-1.
+- contract doesn't cross-check night.start/end vs hours, hourOfDay vs time, dataThrough/now.time parsing.
+- unexpected errors share exit code 1 with contract failures (cli.py).
+- selected hour index may point at another hour after a refresh switches nights (App.jsx).
+- .ics long lines not folded (RFC 5545 recommends 75 octets); nyParts unused.
