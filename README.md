@@ -133,3 +133,6 @@ More: [product brief](docs/product-brief.md) · [design spec](docs/design-spec.m
 
 ## Coming next
 Tonight on the wall (anonymous posts) · Solar as its own source · laundry, dishwasher and device timing.
+
+## License
+MIT, see [LICENSE](LICENSE).
