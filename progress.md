@@ -33,8 +33,13 @@
   Now: 73 backend tests, 55 frontend tests, 42/42 click-through checks.
 - 2026-10-15: **Step 5 done. V1 released.** Pushed `develop`, turned on GitHub Pages, CI green, release PR #2 merged
   by Janhavi, Deploy green, live site verified, tagged `v1.0.0`.
+- 2026-10-25: Thinner gradient scrubber (PR #3). V1 polish (PR #5): removed a stray README line, added the MIT
+  `LICENSE`, added a social link preview (`og-image.png` + Open Graph and Twitter tags). Release PR #6 merged,
+  Deploy green, live og tags and image checked.
+- 2026-10-27: Created the GitHub Release for `v1.0.0` on the existing Oct 15 tag (nothing moved).
 
 ## Next up
+0. Optional: a fresh `og-image.png` (the current one shows the old blocky scrubber and "Wed, Oct 14").
 1. Checkpoint 3: Janhavi opens the live URL on her phone.
 2. Check the hourly Deploy runs in the Actions tab tonight.
 3. Fast follows (see "Deferred" below).
@@ -71,3 +76,9 @@
   - Step 5: final review found an honesty slip after ~4 AM ("tonight's calmest" for a Busy hour), a focus bug,
     and the 60-day schedule pause. All fixed and covered by tests.
   - Released: Janhavi merged PR #2 on GitHub. The site is live and refreshes every hour.
+- **2026-10-25 to 2026-10-27**
+  - Made `chore/v1-polish` from an up-to-date `develop`: README fix, MIT license, social preview. 55 frontend tests pass.
+  - Opened PR #5 (into `develop`) and release PR #6 (`develop` → `main`). Janhavi merged both.
+  - Checked the live site: all 13 og/twitter tags and `og-image.png` (200) are served.
+  - `v1.0.0` already existed (Oct 15), so no tag was moved. Added a Release on it. Today's polish is on `main`, after the tag.
+  - Janhavi asked Claude to make the commits this time (normally Janhavi commits). Pushes were still approved first.
