@@ -34,10 +34,13 @@ jobs:
       - run: pip install -r backend/requirements.txt
 
       # Past NYISO files never change, so keep them between runs (fewer downloads).
+      # One cache per day (not per run), so old caches don't pile up. The newest one is restored.
+      - id: today
+        run: echo "date=$(TZ=America/New_York date +%F)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
           path: backend/.cache
-          key: nyiso-${{ github.run_id }}
+          key: nyiso-${{ steps.today.outputs.date }}
           restore-keys: nyiso-
 
       - name: Build tonight.json from NYISO
