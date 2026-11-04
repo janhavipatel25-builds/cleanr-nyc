@@ -33,20 +33,26 @@
   Now: 73 backend tests, 55 frontend tests, 42/42 click-through checks.
 - 2026-10-15: **Step 5 done. V1 released.** Pushed `develop`, turned on GitHub Pages, CI green, release PR #2 merged
   by Janhavi, Deploy green, live site verified, tagged `v1.0.0`.
+- 2026-10-25: Thinner gradient scrubber (PR #3). V1 polish (PR #5): removed a stray README line, added the MIT
+  `LICENSE`, added a social link preview (`og-image.png` + Open Graph and Twitter tags). Release PR #6 merged,
+  Deploy green, live og tags and image checked.
+- 2026-10-27: Created the GitHub Release for `v1.0.0` on the existing Oct 15 tag (nothing moved).
+
+- 2026-11-03: Hardening PR (`chore/hardening`): exit code 3 for unexpected pipeline errors, folded `.ics` lines,
+  Dependabot, daily Actions cache key, off-peak window now comes from `tonight.json` (`offpeak`, in the contract).
+  77 backend + 62 frontend tests pass. Click-through check (`ui-check.mjs`) was not run this time.
 
 ## Next up
+0. Optional: a fresh `og-image.png` (the current one shows the old blocky scrubber and "Wed, Oct 14").
 1. Checkpoint 3: Janhavi opens the live URL on her phone.
 2. Check the hourly Deploy runs in the Actions tab tonight.
 3. Fast follows (see "Deferred" below).
 
 ## Deferred (minor review findings, for after V1)
-- Off-peak window duplicated in the app (move it into `tonight.json`).
-- Actions cache key per run (key by day, prune old files).
 - Yesterday's NYISO file could be cached before it's complete.
 - Contract could cross-check night start/end vs hours.
-- Clearer exit code for unexpected pipeline errors.
 - Selected hour after a refresh that switches nights.
-- Fold long .ics lines; remove unused `nyParts`.
+- Remove unused `nyParts`.
 - **Every ~50 days:** push a commit or re-enable "Deploy" in Actions (GitHub pauses schedules after 60 quiet days).
 
 ## Open questions
@@ -71,3 +77,12 @@
   - Step 5: final review found an honesty slip after ~4 AM ("tonight's calmest" for a Busy hour), a focus bug,
     and the 60-day schedule pause. All fixed and covered by tests.
   - Released: Janhavi merged PR #2 on GitHub. The site is live and refreshes every hour.
+- **2026-11-03**
+  - Made `chore/hardening` off `develop`. Five small changes, one commit each, checked before every push.
+  - Janhavi asked Claude to commit, push and merge this time (PRs into `develop`, then `develop` → `main`).
+- **2026-10-25 to 2026-10-27**
+  - Made `chore/v1-polish` from an up-to-date `develop`: README fix, MIT license, social preview. 55 frontend tests pass.
+  - Opened PR #5 (into `develop`) and release PR #6 (`develop` → `main`). Janhavi merged both.
+  - Checked the live site: all 13 og/twitter tags and `og-image.png` (200) are served.
+  - `v1.0.0` already existed (Oct 15), so no tag was moved. Added a Release on it. Today's polish is on `main`, after the tag.
+  - Janhavi asked Claude to make the commits this time (normally Janhavi commits). Pushes were still approved first.

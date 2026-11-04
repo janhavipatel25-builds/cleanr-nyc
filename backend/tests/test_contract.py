@@ -30,6 +30,7 @@ def valid_doc(n_hours=15):
         "city": "nyc",
         "timezone": "America/New_York",
         "night": {"start": "2026-10-15T18:00:00-04:00", "end": "2026-10-16T08:00:00-04:00"},
+        "offpeak": {"start": 0, "end": 8},
         "now": {"time": "2026-10-15T21:00:00-04:00", "intensity": 231, "mix": dict(MIX)},
         "hours": hours,
         "meta": {
@@ -53,6 +54,8 @@ def test_the_schema_file_lives_in_docs():
 
 @pytest.mark.parametrize("breaks", [
     lambda d: d.pop("hours"),
+    lambda d: d.pop("offpeak"),
+    lambda d: d["offpeak"].update(end=25),                       # not an hour of the day
     lambda d: d["hours"][0].update(label="sunny"),
     lambda d: d["hours"][0].update(source="guess"),
     lambda d: d["hours"][0]["mix"].update(gas=51),               # mix adds up to 101

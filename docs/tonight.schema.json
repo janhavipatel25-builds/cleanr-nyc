@@ -5,7 +5,7 @@
   "description": "The contract between the Python pipeline and the React app. One night, 6 PM to 8 AM, New York time. Extra rules checked in code: each mix adds up to 100, and hours are exactly one real hour apart.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "generatedAt", "city", "timezone", "night", "now", "hours", "meta"],
+  "required": ["version", "generatedAt", "city", "timezone", "night", "offpeak", "now", "hours", "meta"],
   "properties": {
     "version": { "const": 1 },
     "generatedAt": { "$ref": "#/$defs/time", "description": "When the pipeline ran." },
@@ -18,6 +18,16 @@
       "properties": {
         "start": { "$ref": "#/$defs/time" },
         "end": { "$ref": "#/$defs/time" }
+      }
+    },
+    "offpeak": {
+      "description": "Con Ed's off-peak window, in New York hours of the day. start is included, end is not (0 to 8 = 12 AM to 8 AM).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 0, "maximum": 24 },
+        "end": { "type": "integer", "minimum": 0, "maximum": 24 }
       }
     },
     "now": {
