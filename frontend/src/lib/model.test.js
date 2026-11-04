@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
-import { bestHour, calmStretch, cleanShare, initialSelection, isStale, isTonightsCalmest, liveIndex, statusOf } from './model.js'
+import { bestHour, calmStretch, cleanShare, initialSelection, isStale, isTonightsCalmest, liveIndex, offpeakOf, statusOf } from './model.js'
 
 // Replay of 2026-10-14 at 9:35 PM: 6–9 PM actual, 10 PM onward forecast. Best hour 3 AM.
 const sample = JSON.parse(readFileSync(new URL('../../../backend/samples/tonight.sample.json', import.meta.url)))
@@ -122,5 +122,28 @@ describe('isStale also checks how old the NYISO data is (review fix)', () => {
   test('fresh run but 4-hour-old data is stale', () => {
     const doc = { ...sample, generatedAt: '2026-10-14T21:35:00-04:00', meta: { ...sample.meta, dataThrough: '2026-10-14T17:30:00-04:00' } }
     expect(isStale(doc, NOW)).toBe(true)
+  })
+})
+
+describe('the off-peak window', () => {
+  test('is read from the file', () => {
+    expect(offpeakOf({ offpeak: { start: 1, end: 6 } })).toEqual([1, 6])
+  })
+
+  test('falls back to 12–8 AM for an older file without it', () => {
+    expect(offpeakOf({})).toEqual([0, 8])
+  })
+
+  test('bestHour only looks inside the window it is given', () => {
+    const narrow = bestHour(sample.hours, NOW, [4, 8])
+    expect(sample.hours[narrow].hourOfDay).toBeGreaterThanOrEqual(4)
+    expect(sample.hours[narrow].hourOfDay).toBeLessThan(8)
+  })
+
+  test('calmStretch and isTonightsCalmest follow the same window', () => {
+    const best = bestHour(sample.hours, NOW, [4, 8])
+    const stretch = calmStretch(sample.hours, best, NOW, [4, 8])
+    if (stretch) expect(sample.hours[stretch.start].hourOfDay).toBeGreaterThanOrEqual(4)
+    expect(isTonightsCalmest(sample.hours, best, [4, 8])).toBe(true)
   })
 })
