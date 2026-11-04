@@ -43,3 +43,14 @@ def test_now_can_be_set_for_replays(tmp_path):
 
     cli.main(["--out", str(tmp_path / "t.json"), "--now", "2026-10-15T21:35:00-04:00"], build=spy)
     assert seen["now"].isoformat() == "2026-10-15T21:35:00-04:00"
+
+
+def test_an_unexpected_crash_exits_with_code_3(tmp_path):
+    out = tmp_path / "tonight.json"
+    out.write_text('{"old": "file"}')
+
+    def boom(**_):
+        raise RuntimeError("something nobody planned for")
+
+    assert cli.main(["--out", str(out)], build=boom) == 3
+    assert out.read_text() == '{"old": "file"}'  # the last good file stays
