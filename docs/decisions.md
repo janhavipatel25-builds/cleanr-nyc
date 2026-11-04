@@ -83,3 +83,6 @@ Calls made while building, each with why and what it costs if wrong. Copied from
 - unexpected errors share exit code 1 with contract failures (cli.py).
 - selected hour index may point at another hour after a refresh switches nights (App.jsx).
 - .ics long lines not folded (RFC 5545 recommends 75 octets); nyParts unused.
+
+**2026-11-03** · The off-peak window (12–8 AM) is sent in `tonight.json` as `offpeak`, and is part of the contract. · One source of truth (the city config), so the app and pipeline can't drift apart. The app keeps 0–8 only as a fallback for an older file.
+**2026-11-03** · Pipeline exit code 3 = unexpected crash. · Exit 1 now only means "broke the contract", so the Actions log tells them apart.

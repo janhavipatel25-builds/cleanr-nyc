@@ -1,6 +1,7 @@
 """`python -m cleanr --out <path>`: build tonight's model, check it, write it safely.
 
-Exit codes: 0 written · 1 broke the contract (nothing written) · 2 NYISO data missing (nothing written).
+Exit codes: 0 written · 1 broke the contract (nothing written) · 2 NYISO data missing (nothing written)
+· 3 unexpected crash (nothing written).
 A failed run never touches the last good file.
 """
 
@@ -32,6 +33,9 @@ def main(argv=None, build=tonight.build) -> int:
     except contract.ContractError as err:
         print(f"cleanr: model breaks the contract, not written: {err}", file=sys.stderr)
         return 1
+    except Exception as err:  # anything we did not plan for: say so, and keep the last good file
+        print(f"cleanr: unexpected error, not written: {type(err).__name__}: {err}", file=sys.stderr)
+        return 3
 
     _write_atomically(args.out, json.dumps(doc, indent=1) + "\n")
     print(f"cleanr: wrote {args.out} ({len(doc['hours'])} hours, data through {doc['meta']['dataThrough']})")

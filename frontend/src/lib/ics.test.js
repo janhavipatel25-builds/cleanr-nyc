@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { calendarFileName, makeIcs } from './ics.js'
+import { calendarFileName, foldLine, makeIcs } from './ics.js'
 
 const hour = { time: '2026-10-16T03:00:00-04:00', hourOfDay: 3 }
 const ics = makeIcs(hour, { now: Date.parse('2026-10-15T21:35:00-04:00') })
@@ -36,4 +36,22 @@ test('late in the night it says "left tonight", and only forecasts say "forecast
   expect(live).not.toContain('forecast')
   expect(makeIcs({ ...hour, source: 'forecast' }, { now: 0, tonightsCalmest: true })).toContain('tonight’s calmest hour')
   expect(makeIcs({ ...hour, source: 'forecast' }, { now: 0, tonightsCalmest: true })).toContain('forecast')
+})
+
+test('no line is longer than 75 bytes, as the standard requires', () => {
+  const enc = new TextEncoder()
+  for (const line of ics.split('\r\n')) expect(enc.encode(line).length).toBeLessThanOrEqual(75)
+})
+
+test('folding loses nothing: unfolded, the description is back in one piece', () => {
+  const unfolded = ics.replace(/\r\n /g, '')
+  expect(unfolded).toMatch(/DESCRIPTION:3 AM is tonight’s calmest hour on New York's grid.*inside Con Ed off-peak \(12–8 AM\)\./)
+})
+
+test('foldLine never splits a multi-byte character', () => {
+  const long = 'X:' + '–'.repeat(60) // each dash is 3 bytes
+  const folded = foldLine(long).split('\r\n')
+  expect(folded.length).toBeGreaterThan(1)
+  expect(folded.slice(1).every((l) => l.startsWith(' '))).toBe(true)
+  expect(folded.join('').replace(/ /g, '')).toBe(long)
 })

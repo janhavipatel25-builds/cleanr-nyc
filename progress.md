@@ -38,6 +38,10 @@
   Deploy green, live og tags and image checked.
 - 2026-10-27: Created the GitHub Release for `v1.0.0` on the existing Oct 15 tag (nothing moved).
 
+- 2026-11-03: Hardening PR (`chore/hardening`): exit code 3 for unexpected pipeline errors, folded `.ics` lines,
+  Dependabot, daily Actions cache key, off-peak window now comes from `tonight.json` (`offpeak`, in the contract).
+  77 backend + 62 frontend tests pass. Click-through check (`ui-check.mjs`) was not run this time.
+
 ## Next up
 0. Optional: a fresh `og-image.png` (the current one shows the old blocky scrubber and "Wed, Oct 14").
 1. Checkpoint 3: Janhavi opens the live URL on her phone.
@@ -45,13 +49,10 @@
 3. Fast follows (see "Deferred" below).
 
 ## Deferred (minor review findings, for after V1)
-- Off-peak window duplicated in the app (move it into `tonight.json`).
-- Actions cache key per run (key by day, prune old files).
 - Yesterday's NYISO file could be cached before it's complete.
 - Contract could cross-check night start/end vs hours.
-- Clearer exit code for unexpected pipeline errors.
 - Selected hour after a refresh that switches nights.
-- Fold long .ics lines; remove unused `nyParts`.
+- Remove unused `nyParts`.
 - **Every ~50 days:** push a commit or re-enable "Deploy" in Actions (GitHub pauses schedules after 60 quiet days).
 
 ## Open questions
@@ -76,6 +77,9 @@
   - Step 5: final review found an honesty slip after ~4 AM ("tonight's calmest" for a Busy hour), a focus bug,
     and the 60-day schedule pause. All fixed and covered by tests.
   - Released: Janhavi merged PR #2 on GitHub. The site is live and refreshes every hour.
+- **2026-11-03**
+  - Made `chore/hardening` off `develop`. Five small changes, one commit each, checked before every push.
+  - Janhavi asked Claude to commit, push and merge this time (PRs into `develop`, then `develop` → `main`).
 - **2026-10-25 to 2026-10-27**
   - Made `chore/v1-polish` from an up-to-date `develop`: README fix, MIT license, social preview. 55 frontend tests pass.
   - Opened PR #5 (into `develop`) and release PR #6 (`develop` → `main`). Janhavi merged both.

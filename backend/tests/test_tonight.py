@@ -105,3 +105,9 @@ def test_meta_records_method_factors_and_data_time():
     assert doc["meta"]["dataThrough"] == hist.attrs["dataThrough"]
     assert doc["meta"]["emissionFactors"]["gas"] == pytest.approx(422.8, abs=0.1)
     assert doc["generatedAt"] == "2026-10-15T21:35:00-04:00"
+
+
+def test_the_offpeak_window_travels_in_the_file():
+    """The app reads Con Ed's off-peak window from the file, so the two sides can't drift apart."""
+    doc = tonight.assemble(ny("2026-10-15 21:35"), make_history("2026-10-15 21:00"), make_load_forecast())
+    assert doc["offpeak"] == {"start": 0, "end": 8}
