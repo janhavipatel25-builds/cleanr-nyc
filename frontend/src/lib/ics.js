@@ -7,6 +7,27 @@ const HOUR = 60 * 60 * 1000
 // 2026-10-16T07:00:00.000Z → 20261016T070000Z (UTC, so every calendar app agrees on the moment)
 const stamp = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 
+const encoder = new TextEncoder()
+
+/** Calendar lines may be 75 bytes at most. Longer ones are cut and the rest continues on a new line that starts with a space. */
+export function foldLine(line) {
+  const parts = []
+  let current = ''
+  let bytes = 0
+  for (const char of line) {
+    const size = encoder.encode(char).length
+    if (bytes + size > 75 - (parts.length ? 1 : 0)) { // continuation lines spend 1 byte on the leading space
+      parts.push(current)
+      current = ''
+      bytes = 0
+    }
+    current += char
+    bytes += size
+  }
+  parts.push(current)
+  return parts.map((part, i) => (i ? ' ' : '') + part).join('\r\n')
+}
+
 /** A 1-hour event at `hour` (an item from tonight.json `hours`). */
 export function makeIcs(hour, { now = Date.now(), tonightsCalmest = true } = {}) {
   const start = Date.parse(hour.time)
@@ -25,8 +46,10 @@ export function makeIcs(hour, { now = Date.now(), tonightsCalmest = true } = {})
     `DESCRIPTION:${label} is ${calmestPhrase(tonightsCalmest)} on New York's grid: fewer gas plants running\\, inside Con Ed off-peak (12–8 AM).${hour.source === 'forecast' ? " It's a forecast and may shift." : ''}`,
     'END:VEVENT',
     'END:VCALENDAR',
-    '',
-  ].join('\r\n')
+  ]
+    .map(foldLine)
+    .concat('')
+    .join('\r\n')
 }
 
 export function calendarFileName(hour) {
