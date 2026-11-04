@@ -61,6 +61,7 @@ def assemble(now: pd.Timestamp, hist: pd.DataFrame, load_fc: pd.Series) -> dict:
         "city": CITY.key,
         "timezone": CITY.tz.key,
         "night": {"start": _iso(hours[0]), "end": _iso(hours[-1])},
+        "offpeak": {"start": CITY.offpeak[0], "end": CITY.offpeak[1]},
         "now": {
             "time": _iso(latest),
             "intensity": round(float(actual.loc[latest, "intensity"])),
