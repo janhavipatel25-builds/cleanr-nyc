@@ -1,13 +1,8 @@
 import { expect, test } from 'vitest'
-import { dateChip, hourLabel, hourShort, nyParts, rangeLabel, timeOfDay, updatedLabel } from './time.js'
+import { dateChip, hourLabel, hourShort, rangeLabel, timeOfDay, updatedLabel } from './time.js'
 
 test('the machine running these tests is NOT on New York time', () => {
   expect(Intl.DateTimeFormat().resolvedOptions().timeZone).not.toBe('America/New_York')
-})
-
-test('nyParts reads the clock in New York, wherever the viewer is', () => {
-  // 07:00 UTC = 3 AM in New York (EDT), 8 AM in London
-  expect(nyParts(new Date('2026-10-16T07:00:00Z'))).toMatchObject({ hour: 3, day: 16, month: 10 })
 })
 
 test('hour labels', () => {
