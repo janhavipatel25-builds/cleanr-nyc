@@ -8,7 +8,7 @@ import io
 import urllib.error
 import urllib.request
 import zipfile
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -77,7 +77,7 @@ def _feed_bytes(feed: str, day: date, *, get=http_get, cache_dir=None, today=Non
     today = today or datetime.now(CITY.tz).date()
     ymd, ym = day.strftime("%Y%m%d"), day.strftime("%Y%m")
 
-    data = _cached(CITY.daily_url(feed, ymd), get, cache_dir, cacheable=day < today)
+    data = _cached(CITY.daily_url(feed, ymd), get, cache_dir, cacheable=day < today - timedelta(days=1))  # yesterday may still be filling in
     if data is None:
         past_month = (day.year, day.month) < (today.year, today.month)
         archive = _cached(CITY.monthly_zip_url(feed, ym), get, cache_dir, cacheable=past_month)

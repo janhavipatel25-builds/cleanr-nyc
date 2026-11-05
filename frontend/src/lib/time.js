@@ -1,21 +1,6 @@
 // Everything is shown in New York time, whatever time zone the viewer is in.
 export const TIMEZONE = 'America/New_York'
 
-const partsFormat = new Intl.DateTimeFormat('en-US', {
-  timeZone: TIMEZONE,
-  year: 'numeric', month: 'numeric', day: 'numeric',
-  hour: 'numeric', minute: 'numeric', hourCycle: 'h23',
-})
-
-/** The New York wall clock at `date`: { year, month, day, hour, minute }. */
-export function nyParts(date = new Date()) {
-  const out = {}
-  for (const { type, value } of partsFormat.formatToParts(date)) {
-    if (type !== 'literal') out[type] = Number(value)
-  }
-  return out
-}
-
 const split = (h) => ({ n: h % 12 === 0 ? 12 : h % 12, s: h < 12 ? 'AM' : 'PM' })
 
 /** 3 → "3 AM", 0 → "12 AM", 18 → "6 PM" */
