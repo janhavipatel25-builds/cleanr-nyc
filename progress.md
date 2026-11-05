@@ -41,6 +41,9 @@
 - 2026-11-03: Hardening PR (`chore/hardening`): exit code 3 for unexpected pipeline errors, folded `.ics` lines,
   Dependabot, daily Actions cache key, off-peak window now comes from `tonight.json` (`offpeak`, in the contract).
   77 backend + 62 frontend tests pass. Click-through check (`ui-check.mjs`) was not run this time.
+- 2026-11-04: Hardening PR 2 (`chore/hardening-2`): yesterday's NYISO file is no longer cached too early, the contract
+  cross-checks night/hours/times, CI cancels stale runs and has timeouts, PR template, removed unused `nyParts`.
+  80 backend + 61 frontend tests pass.
 
 ## Next up
 0. Optional: a fresh `og-image.png` (the current one shows the old blocky scrubber and "Wed, Oct 14").
@@ -49,10 +52,7 @@
 3. Fast follows (see "Deferred" below).
 
 ## Deferred (minor review findings, for after V1)
-- Yesterday's NYISO file could be cached before it's complete.
-- Contract could cross-check night start/end vs hours.
 - Selected hour after a refresh that switches nights.
-- Remove unused `nyParts`.
 - **Every ~50 days:** push a commit or re-enable "Deploy" in Actions (GitHub pauses schedules after 60 quiet days).
 
 ## Open questions
@@ -80,6 +80,8 @@
 - **2026-11-03**
   - Made `chore/hardening` off `develop`. Five small changes, one commit each, checked before every push.
   - Janhavi asked Claude to commit, push and merge this time (PRs into `develop`, then `develop` → `main`).
+- **2026-11-04**
+  - Made `chore/hardening-2` off `develop`. Five more small changes, one commit each. Janhavi again asked Claude to commit, push and merge.
 - **2026-10-25 to 2026-10-27**
   - Made `chore/v1-polish` from an up-to-date `develop`: README fix, MIT license, social preview. 55 frontend tests pass.
   - Opened PR #5 (into `develop`) and release PR #6 (`develop` → `main`). Janhavi merged both.

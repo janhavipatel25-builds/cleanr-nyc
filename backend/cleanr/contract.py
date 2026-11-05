@@ -30,8 +30,16 @@ def validate(doc: dict) -> None:
     for i in range(1, len(times)):
         if times[i] - times[i - 1] != timedelta(hours=1):
             raise ContractError(f"hours/{i}/time is not one hour after the hour before")
-    for key in ("generatedAt",):
-        _time(doc[key], key)
+    for i, (hour, when) in enumerate(zip(doc["hours"], times)):
+        if hour["hourOfDay"] != when.hour:
+            raise ContractError(f"hours/{i}/hourOfDay is {hour['hourOfDay']}, but its time says {when.hour}")
+    if _time(doc["night"]["start"], "night/start") != times[0]:
+        raise ContractError("night/start is not the first hour")
+    if _time(doc["night"]["end"], "night/end") != times[-1]:
+        raise ContractError("night/end is not the last hour")
+    for where, value in [("generatedAt", doc["generatedAt"]), ("now/time", doc["now"]["time"]),
+                         ("meta/dataThrough", doc["meta"]["dataThrough"])]:
+        _time(value, where)
 
 
 def _time(value: str, where: str) -> datetime:
