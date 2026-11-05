@@ -116,3 +116,11 @@ def test_todays_file_is_never_cached(tmp_path):
     fetch.fuel_mix(date(2026, 10, 13), get=get, cache_dir=tmp_path, today=date(2026, 10, 13))
     fetch.fuel_mix(date(2026, 10, 13), get=get, cache_dir=tmp_path, today=date(2026, 10, 13))
     assert get.calls == [DAILY, DAILY]
+
+
+def test_yesterdays_file_is_not_cached_yet(tmp_path):
+    """NYISO can post the last readings of a day late, so yesterday's file may still be incomplete."""
+    get = fake_get({DAILY: FUEL_CSV})
+    fetch.fuel_mix(date(2026, 10, 13), get=get, cache_dir=tmp_path, today=date(2026, 10, 14))
+    fetch.fuel_mix(date(2026, 10, 13), get=get, cache_dir=tmp_path, today=date(2026, 10, 14))
+    assert get.calls == [DAILY, DAILY]
