@@ -64,6 +64,11 @@ def test_the_schema_file_lives_in_docs():
     lambda d: d.update(hours=d["hours"][:10]),                   # too few hours
     lambda d: d["hours"][3].update(time="2026-10-15T23:30:00-04:00"),  # not one hour apart
     lambda d: d.update(generatedAt="yesterday"),
+    lambda d: d["now"].update(time="soon"),
+    lambda d: d["meta"].update(dataThrough="soon"),
+    lambda d: d["night"].update(start="2026-10-15T19:00:00-04:00"),   # night does not begin at the first hour
+    lambda d: d["night"].update(end="2026-10-16T07:00:00-04:00"),     # night does not end at the last hour
+    lambda d: d["hours"][2].update(hourOfDay=5),                      # says 5, time says 8 PM
     lambda d: d.update(extra="not allowed"),
 ])
 def test_broken_documents_are_rejected(breaks):
@@ -78,6 +83,7 @@ def test_the_daylight_saving_night_with_16_hours_is_allowed():
     start = datetime.fromisoformat("2026-10-31T18:00:00-04:00")
     for i, hour in enumerate(doc["hours"]):
         hour["time"] = (start + timedelta(hours=i)).isoformat()  # one real hour apart
+    doc["night"] = {"start": doc["hours"][0]["time"], "end": doc["hours"][-1]["time"]}
     contract.validate(doc)
 
 
