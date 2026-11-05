@@ -10,10 +10,16 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same branch makes the older, still-running check pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     name: Backend tests (pytest)
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # a stuck job should fail, not run for hours
     defaults:
       run:
         working-directory: backend
@@ -30,6 +36,7 @@ jobs:
   frontend:
     name: Frontend tests + build
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # a stuck job should fail, not run for hours
     defaults:
       run:
         working-directory: frontend
